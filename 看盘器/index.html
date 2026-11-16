@@ -1,0 +1,1101 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width,initial-scale=1,viewport-fit=cover">
+<meta name="theme-color" content="#0b0f16">
+<link rel="manifest" href="manifest.webmanifest">
+<meta name="mobile-web-app-capable" content="yes">
+<meta name="apple-mobile-web-app-capable" content="yes">
+<meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
+<meta name="apple-mobile-web-app-title" content="交易看板">
+<link rel="apple-touch-icon" href="icon-180.png">
+<link rel="icon" type="image/png" sizes="192x192" href="icon-192.png">
+<title>交易看板 · BOE·A500</title>
+<style>
+*{box-sizing:border-box;margin:0;padding:0;-webkit-tap-highlight-color:transparent}
+:root{--bg:#0b0f16;--panel:#131a24;--panel2:#0f151e;--bd:#232c3a;--bd2:#2e3a4c;--tx:#e6edf3;--mu:#8b97a8;--dim:#5f6b7c;--up:#ff5f56;--dn:#26c281;--ac:#4c9aff;--wn:#e3b341;--bad:#f85149;--gd:#3fb950;--pp:#a371f7;--sat:env(safe-area-inset-top,0px);--sab:env(safe-area-inset-bottom,0px);--ballh:0px}
+body{background:var(--bg);color:var(--tx);font:14px/1.6 -apple-system,BlinkMacSystemFont,"PingFang SC","Microsoft YaHei",sans-serif;font-variant-numeric:tabular-nums;padding:0 0 40px;-webkit-font-smoothing:antialiased}
+.wrap{max-width:1420px;margin:0 auto;padding:0 18px}
+.mono{font-family:ui-monospace,SFMono-Regular,Menlo,Consolas,monospace;font-variant-numeric:tabular-nums}
+.up{color:var(--up)}.dn{color:var(--dn)}.mu{color:var(--mu)}.dim{color:var(--dim)}.ac{color:var(--ac)}.wn{color:var(--wn)}.gd{color:var(--gd)}.bad{color:var(--bad)}.pp{color:var(--pp)}
+header{background:linear-gradient(180deg,#121a29 0%,#0b0f16 100%);border-bottom:1px solid var(--bd);padding:calc(14px + var(--sat)) 0 12px;margin-bottom:14px;position:sticky;top:0;z-index:60}
+.hrow{display:flex;align-items:center;gap:14px;flex-wrap:wrap}
+.logo{font-size:19px;font-weight:800;letter-spacing:.5px;white-space:nowrap}.logo span{color:var(--ac)}
+.sub{color:var(--mu);font-size:11.5px;margin-top:2px;line-height:1.5}
+.spacer{flex:1}
+.kpis{display:flex;gap:8px;flex-wrap:wrap}
+.kpi{background:var(--panel);border:1px solid var(--bd);border-radius:9px;padding:6px 12px;min-width:88px}
+.kpi .k{font-size:10.5px;color:var(--mu);letter-spacing:.4px;white-space:nowrap}
+.kpi .v{font-size:17px;font-weight:700;margin-top:1px;white-space:nowrap}
+.badge{display:inline-flex;align-items:center;gap:5px;padding:3px 10px;border-radius:20px;font-size:11.5px;font-weight:700;border:1px solid;white-space:nowrap}
+.b-ok{background:rgba(63,185,80,.13);border-color:rgba(63,185,80,.42);color:var(--gd)}
+.b-wa{background:rgba(227,179,65,.13);border-color:rgba(227,179,65,.42);color:var(--wn)}
+.b-bd{background:rgba(248,81,73,.13);border-color:rgba(248,81,73,.42);color:var(--bad)}
+.b-nt{background:rgba(139,151,168,.1);border-color:var(--bd2);color:var(--mu)}
+.b-ac{background:rgba(76,154,255,.13);border-color:rgba(76,154,255,.42);color:var(--ac)}
+.btn{background:var(--panel);border:1px solid var(--bd2);color:var(--tx);border-radius:8px;padding:7px 13px;cursor:pointer;font-size:12px;font-weight:700;font-family:inherit}
+.btn:hover{border-color:var(--ac);color:var(--ac)}
+.btn.pri{background:var(--ac);border-color:var(--ac);color:#04101f}
+.btn.sm{padding:4px 9px;font-size:11px;border-radius:6px}
+.btn.ok{background:rgba(63,185,80,.14);border-color:rgba(63,185,80,.4);color:var(--gd)}
+.btn.wn{background:rgba(227,179,65,.14);border-color:rgba(227,179,65,.4);color:var(--wn)}
+nav{display:flex;gap:3px;margin:12px 0 15px;border-bottom:1px solid var(--bd);position:sticky;top:0;background:rgba(11,15,22,.93);backdrop-filter:blur(10px);z-index:55;padding-top:2px}
+nav button{background:none;border:none;border-bottom:2px solid transparent;color:var(--mu);padding:10px 15px;cursor:pointer;font-size:13px;font-weight:700;font-family:inherit;white-space:nowrap}
+nav button:hover{color:var(--tx)}nav button.on{color:var(--ac);border-bottom-color:var(--ac)}
+.tab{display:none}.tab.on{display:block;animation:fade .18s ease}
+@keyframes fade{from{opacity:.4;transform:translateY(3px)}to{opacity:1;transform:none}}
+.grid{display:grid;gap:12px}.g2{grid-template-columns:1.15fr .85fr}.g3{grid-template-columns:repeat(3,1fr)}.g5{grid-template-columns:repeat(5,1fr)}
+.card{background:var(--panel);border:1px solid var(--bd);border-radius:12px;padding:14px 15px}
+.card h3{font-size:13px;margin-bottom:9px;display:flex;align-items:center;gap:7px;flex-wrap:wrap}
+.card h3 .n{background:var(--bd2);color:var(--mu);font-size:10.5px;border-radius:5px;padding:1px 6px;font-weight:700}
+.row{display:flex;justify-content:space-between;gap:10px;padding:6px 0;border-bottom:1px dashed rgba(255,255,255,.05);font-size:12.5px}
+.row:last-child{border-bottom:none}.row .lab{color:var(--mu);flex-shrink:0}.row .val{text-align:right;font-weight:600}
+.card .foot{margin-top:9px;padding-top:9px;border-top:1px solid var(--bd);font-size:12px;color:var(--mu)}.card .foot b{color:var(--tx)}
+.card.lay1{border-top:3px solid var(--ac)}.card.lay2{border-top:3px solid var(--pp)}.card.lay3{border-top:3px solid var(--wn)}.card.lay4{border-top:3px solid #2f81f7}.card.lay5{border-top:3px solid var(--gd)}
+table{width:100%;border-collapse:collapse;font-size:12.5px}
+th{text-align:left;color:var(--mu);font-weight:600;padding:8px 8px;border-bottom:1px solid var(--bd2);font-size:11px;letter-spacing:.4px;white-space:nowrap}
+td{padding:8px;border-bottom:1px solid rgba(255,255,255,.045)}
+tr:hover td{background:rgba(255,255,255,.022)}
+.num{text-align:right;font-family:ui-monospace,Menlo,monospace;font-variant-numeric:tabular-nums;white-space:nowrap}
+.tw{overflow-x:auto;border:1px solid var(--bd);border-radius:12px;background:var(--panel);-webkit-overflow-scrolling:touch}
+.tw table{min-width:520px}.tw.sticky table{min-width:640px}
+.tw.sticky td:first-child,.tw.sticky th:first-child{position:sticky;left:0;background:var(--panel);z-index:2}
+.tw.sticky th:first-child{background:var(--panel2)}
+.alert{border-radius:12px;padding:13px 15px;margin-bottom:13px;border:1px solid}
+.alert.bad{background:rgba(248,81,73,.08);border-color:rgba(248,81,73,.35)}
+.alert.wn{background:rgba(227,179,65,.07);border-color:rgba(227,179,65,.32)}
+.alert.gd{background:rgba(63,185,80,.07);border-color:rgba(63,185,80,.3)}
+.alert .t{font-weight:800;font-size:13.5px;margin-bottom:6px;display:flex;align-items:center;gap:8px;flex-wrap:wrap}
+.alert ul{margin:5px 0 0 18px}.alert li{margin:3px 0;font-size:12.5px}
+.headline{background:linear-gradient(135deg,rgba(76,154,255,.12),rgba(163,113,247,.09));border:1px solid rgba(76,154,255,.35);border-radius:13px;padding:14px 16px;margin-bottom:13px}
+.headline .hl-top{display:flex;align-items:center;gap:9px;margin-bottom:8px;flex-wrap:wrap}
+.headline .hl-k{font-size:11px;color:var(--ac);font-weight:800;letter-spacing:1px}
+.headline ol{margin:0;padding-left:19px}.headline li{margin:5px 0;font-size:13px;line-height:1.55}.headline li b{color:#fff}
+.hl-tag{display:inline-block;background:rgba(76,154,255,.18);color:var(--ac);font-size:10.5px;font-weight:800;border-radius:5px;padding:2px 7px;margin-right:5px}
+.todo{display:flex;gap:10px;padding:11px 0;border-bottom:1px dashed rgba(255,255,255,.06);align-items:flex-start}
+.todo:last-child{border-bottom:none}
+.dot{width:9px;height:9px;border-radius:50%;margin-top:7px;flex-shrink:0}
+.dot.on{background:var(--bad);box-shadow:0 0 9px var(--bad);animation:pulse 1.8s infinite}
+.dot.wait{background:var(--wn);box-shadow:0 0 9px rgba(227,179,65,.65)}.dot.off{background:var(--dim)}
+@keyframes pulse{0%,100%{opacity:1}50%{opacity:.45}}
+.todo .body{flex:1;min-width:0}.todo .act{font-weight:700;font-size:13px;margin-bottom:3px}
+.todo .cond{font-size:12px;color:var(--mu);line-height:1.5}.todo .why{font-size:11.5px;color:var(--dim);margin-top:4px;line-height:1.5}
+.todo .px{font-family:ui-monospace,Menlo,monospace;color:var(--wn);font-weight:700;font-size:12.5px;white-space:nowrap;text-align:right;padding-left:6px}
+input[type=number],input[type=text]{background:var(--panel2);border:1px solid var(--bd2);color:var(--tx);border-radius:6px;padding:5px 8px;width:82px;font-size:13px;font-family:ui-monospace,Menlo,monospace}
+input:focus{outline:none;border-color:var(--ac);box-shadow:0 0 0 2px rgba(76,154,255,.18)}
+label.ck{display:flex;align-items:flex-start;gap:10px;padding:10px 0;border-bottom:1px dashed rgba(255,255,255,.05);font-size:12.5px;cursor:pointer}
+label.ck input{accent-color:var(--gd);width:16px;height:16px;flex-shrink:0;margin-top:2px;cursor:pointer}
+label.ck.done{color:var(--dim);text-decoration:line-through}
+.chk .px{color:var(--ac);font-family:ui-monospace,Menlo,monospace;font-weight:700}
+textarea{background:var(--panel2);border:1px solid var(--bd2);color:var(--tx);border-radius:8px;padding:10px;width:100%;font-size:12.5px;font-family:ui-monospace,Menlo,monospace;min-height:118px;resize:vertical}
+textarea:focus{outline:none;border-color:var(--ac)}
+.hint{font-size:11.5px;color:var(--dim);margin-top:6px;line-height:1.5}
+.grip{display:grid;grid-template-columns:repeat(auto-fit,minmax(185px,1fr));gap:10px}
+.mini{background:var(--panel2);border:1px solid var(--bd);border-radius:9px;padding:11px}
+.mini .k{font-size:11px;color:var(--mu)}.mini .v{font-size:16px;font-weight:700;margin-top:2px}
+.calc{background:var(--panel2);border:1px solid var(--bd2);border-radius:10px;padding:12px 13px}
+.calc .row2{display:flex;gap:9px;align-items:center;flex-wrap:wrap;margin-bottom:9px}
+.calc .row2 label{font-size:11.5px;color:var(--mu);min-width:64px}
+.calc .out{font-size:13px;font-weight:700;padding:9px 11px;border-radius:8px;margin-top:4px;line-height:1.6}
+.out.good{background:rgba(63,185,80,.12);color:var(--gd);border:1px solid rgba(63,185,80,.3)}
+.out.warn{background:rgba(227,179,65,.12);color:var(--wn);border:1px solid rgba(227,179,65,.3)}
+.out.bad{background:rgba(248,81,73,.12);color:var(--bad);border:1px solid rgba(248,81,73,.3)}
+.out.nt{background:rgba(139,151,168,.08);color:var(--mu);border:1px solid var(--bd2)}
+.pchips{display:flex;gap:6px;flex-wrap:wrap;margin-top:8px}
+.pcards{display:none}
+.pcard{background:var(--panel2);border:1px solid var(--bd);border-radius:11px;padding:12px;margin-bottom:10px}
+.pcard .pt{font-weight:800;font-size:14px;display:flex;justify-content:space-between;align-items:center;gap:8px}
+.pcard .pr{font-size:11.5px;color:var(--mu);margin:2px 0 9px}
+.pcard .pgrid{display:grid;grid-template-columns:1fr 1fr;gap:8px}
+.pcard .pf{background:var(--panel);border:1px solid var(--bd);border-radius:8px;padding:7px 9px}
+.pcard .pf .k{font-size:10.5px;color:var(--mu)}.pcard .pf .v{font-size:15px;font-weight:700;font-family:ui-monospace,Menlo,monospace;margin-top:1px}
+.pcard .pedit{display:flex;gap:7px;align-items:center;margin-top:9px;flex-wrap:wrap}
+.pcard .pedit input{width:78px;padding:7px 9px}
+.tag{display:inline-block;background:var(--bd2);color:var(--mu);border-radius:4px;padding:1px 6px;font-size:10.5px;margin-right:4px;font-weight:600}
+.mobonly{display:none}.deskonly{display:block}.narrow-only{display:none}
+@media(max-width:1180px){.g5{grid-template-columns:repeat(3,1fr)}.g3{grid-template-columns:1fr 1fr}}
+@media(max-width:900px){.g2,.g3,.g5{grid-template-columns:1fr}}
+@media(max-width:860px){
+ body{padding-bottom:calc(66px + var(--ballh) + var(--sab))}.wrap{padding:0 13px}
+ header{position:relative;padding-top:calc(12px + var(--sat))}.hrow{gap:9px}.logo{font-size:17px}.sub{font-size:11px}
+ .brand{flex:1;min-width:0}.hrow .btn.pri{flex-shrink:0;align-self:flex-start;padding:7px 12px}
+ .kpis{flex-wrap:nowrap;overflow-x:auto;-webkit-overflow-scrolling:touch;padding-bottom:3px;scrollbar-width:none;width:100%;order:3;margin-top:2px}
+ .kpis::-webkit-scrollbar{display:none}.kpi{flex-shrink:0;min-width:auto;padding:5px 11px}.kpi .v{font-size:15px}
+ .spacer{display:none}.wide-only{display:none}.narrow-only{display:inline}
+ .sub{white-space:normal;overflow:hidden;text-overflow:ellipsis;display:-webkit-box;-webkit-line-clamp:2;-webkit-box-orient:vertical}
+ nav{position:fixed;left:0;right:0;bottom:var(--ballh,0px);top:auto;margin:0;padding:5px 4px calc(5px + var(--sab));border-top:1px solid var(--bd);border-bottom:none;background:rgba(19,26,36,.97);backdrop-filter:blur(14px);gap:0;overflow-x:auto;justify-content:space-between}
+ nav{background:#131a24;z-index:99999}
+ nav button{flex:1 1 0;min-width:50px;padding:7px 2px 5px;font-size:10px;border-bottom:none;border-radius:9px;display:flex;flex-direction:column;align-items:center;gap:2px;line-height:1.2}
+ nav button .ic{font-size:16px;line-height:1}nav button.on{background:rgba(76,154,255,.14);border-bottom:none}
+ .deskonly{display:none}.mobonly{display:block}
+ .tw{border-radius:11px}.tw table{min-width:100%}.tw.sticky table{min-width:560px}
+ .card{padding:13px;border-radius:11px}
+ .row{flex-direction:column;gap:2px;padding:7px 0}.row .val{text-align:left;font-size:12.5px}
+ .headline{padding:13px}.headline li{font-size:13.5px}
+ .todo{padding:12px 0}.todo .act{font-size:13.5px}.todo .px{font-size:13px}
+ .calc .row2 label{min-width:58px}.grip{grid-template-columns:1fr 1fr}.mini .v{font-size:15px}
+ .alert li{color:var(--tx)}
+}
+@media(max-width:400px){.grip{grid-template-columns:1fr}.pcard .pgrid{grid-template-columns:1fr}}
+@media (prefers-reduced-motion:reduce){*{animation:none!important}}
+
+/* ===== v2 · 首屏 / 折叠 / 盯盘 / 导出 ===== */
+.hero{background:linear-gradient(160deg,rgba(76,154,255,.15),rgba(163,113,247,.08) 55%,transparent);border:1px solid rgba(76,154,255,.34);border-radius:14px;padding:14px 15px;margin-bottom:13px}
+.hero-top{display:flex;align-items:center;gap:8px;flex-wrap:wrap;margin-bottom:10px}
+.hero-top .mu{font-size:11.5px}
+.hero-px{display:flex;align-items:flex-end;gap:14px;flex-wrap:wrap}
+.hero-px .big{font-size:44px;font-weight:800;line-height:1;font-family:ui-monospace,Menlo,monospace;letter-spacing:-1px}
+.hero-meta{display:grid;grid-template-columns:repeat(2,minmax(92px,1fr));gap:6px 16px;flex:1;min-width:190px}
+.hero-meta .k{display:block;font-size:10.5px;color:var(--mu)}
+.hero-meta b{font-size:14px;font-family:ui-monospace,Menlo,monospace}
+.dist{margin:12px 0 0;border-top:1px dashed var(--bd);padding-top:10px}
+.dist-row{display:flex;align-items:center;gap:9px;padding:4px 0;font-size:12.5px}
+.dist-row .dl{flex:0 0 122px;color:var(--mu)}
+.dist-row .dp{flex:0 0 92px;text-align:right;font-family:ui-monospace,Menlo,monospace;font-weight:700}
+.dbar{flex:1;height:7px;background:var(--panel2);border-radius:4px;overflow:hidden;border:1px solid var(--bd)}
+.dbar b{display:block;height:100%;border-radius:4px}
+.hero-act{margin-top:11px;border-top:1px dashed var(--bd);padding-top:10px}
+.hero-act .ha-t{font-size:12px;font-weight:800;color:var(--wn);margin-bottom:5px}
+.hero-act ol{margin:0;padding-left:19px}
+.hero-act li{font-size:13px;line-height:1.55;margin:4px 0}
+.hero-btns{display:flex;gap:8px;margin-top:12px;flex-wrap:wrap}
+.hero-btns .btn{flex:1;min-width:128px;padding:11px 12px;font-size:13px}
+details.fold{border:1px solid var(--bd);border-radius:11px;background:var(--panel);margin-bottom:9px;overflow:hidden}
+details.fold>summary{list-style:none;cursor:pointer;padding:11px 13px;font-size:13px;font-weight:700;display:flex;align-items:center;gap:8px;line-height:1.45}
+details.fold>summary::-webkit-details-marker{display:none}
+details.fold>summary::before{content:'\25B8';color:var(--ac);font-size:12px;flex:0 0 auto}
+details.fold[open]>summary{border-bottom:1px solid var(--bd)}
+details.fold>summary .fs{margin-left:auto;font-weight:600;font-size:11.5px;color:var(--mu);text-align:right;max-width:46%}
+details.fold .fb{padding:11px 13px 12px;font-size:12.5px;line-height:1.62}
+details.fold .fb li{margin:4px 0}
+details.fold .fb b{color:#fff}
+details.fold .fb p{margin:5px 0}
+details.fold .fb .card{border:none;background:transparent;padding:0}
+details.fold .fb .grid{gap:10px}
+.headline li{margin:0 0 7px}
+.headline li:last-child{margin-bottom:0}
+.headline li details.fold{margin-bottom:0;background:var(--panel2)}
+.headline li details.fold>summary{border-bottom:none}
+.headline li details.fold[open]>summary{border-bottom:1px solid var(--bd)}
+details.fold.todo-fold{background:var(--panel);margin-bottom:8px}
+details.fold.todo-fold>summary{padding:11px 12px}
+details.fold.todo-fold .dot{animation:none}
+.watch{position:fixed;inset:0;z-index:99999;background:#070a10;display:none;flex-direction:column;padding:calc(12px + var(--sat)) 14px calc(12px + var(--sab));overflow-y:auto;-webkit-overflow-scrolling:touch}
+.watch.on{display:flex}
+.w-top{display:flex;align-items:center;justify-content:space-between;gap:10px}
+.w-top .btn{padding:8px 13px}
+.w-top .mu{font-size:11.5px}
+.w-px{text-align:center;margin:14px 0 4px}
+.w-big{font-size:58px;font-weight:800;line-height:1;font-family:ui-monospace,Menlo,monospace;letter-spacing:-2px}
+.w-chg{font-size:17px;font-weight:700;margin-top:6px;font-family:ui-monospace,Menlo,monospace}
+.w-pos{text-align:center;font-size:13px;color:var(--mu);margin-top:8px;line-height:1.65}
+.w-dist{margin:16px 0 0;border-top:1px solid var(--bd);padding-top:12px}
+.w-reads{display:grid;grid-template-columns:repeat(2,1fr);gap:8px;margin-top:12px}
+.w-reads .rd{background:var(--panel);border:1px solid var(--bd);border-radius:10px;padding:9px 11px}
+.w-reads .rd .k{font-size:10.5px;color:var(--mu)}
+.w-reads .rd .v{font-size:15px;font-weight:700;font-family:ui-monospace,Menlo,monospace;margin-top:2px}
+.w-btns{display:flex;gap:9px;margin-top:14px}
+.w-btns .btn{flex:1;padding:13px;font-size:14px}
+.w-act{margin-top:14px;background:var(--panel);border:1px solid var(--bd);border-radius:12px;padding:12px 13px}
+.w-act .t{font-size:12px;font-weight:800;color:var(--wn);margin-bottom:6px}
+.w-act ol{margin:0;padding-left:19px}
+.w-act li{font-size:13px;line-height:1.55;margin:4px 0}
+.exp{display:grid;grid-template-columns:repeat(2,1fr);gap:8px;margin-top:9px}
+.exp .btn{width:100%;padding:11px 8px;font-size:12px}
+.code{width:100%;min-height:96px;background:var(--panel2);border:1px solid var(--bd2);color:var(--tx);border-radius:8px;padding:9px;font-size:11px;font-family:ui-monospace,Menlo,monospace;resize:vertical;margin-top:8px}
+.gcards{display:grid;grid-template-columns:repeat(2,1fr);gap:8px}
+.gcard{background:var(--panel2);border:1px solid var(--bd);border-radius:10px;padding:9px 11px}
+.gcard>summary{list-style:none;cursor:pointer;position:relative;padding-right:38px}
+.gcard>summary::-webkit-details-marker{display:none}
+.gcard>summary::after{content:'例';position:absolute;right:0;top:0;font-size:10px;color:var(--mu);border:1px solid var(--bd2);border-radius:5px;padding:0 5px;line-height:16px}
+.gcard>summary b{font-size:13px;font-weight:800;color:var(--ac);display:block}
+.gcard>summary span{font-size:12px;line-height:1.5;color:var(--tx);display:-webkit-box;-webkit-line-clamp:3;-webkit-box-orient:vertical;overflow:hidden;margin-top:3px}
+.gcard[open]>summary span{-webkit-line-clamp:unset}
+.gcard[open]>summary::after{content:'例';color:var(--ac);border-color:var(--ac)}
+.gcard .g3{font-size:11px;line-height:1.55;color:var(--mu);font-family:ui-monospace,Menlo,monospace;margin-top:7px;padding-top:7px;border-top:1px dashed var(--bd)}
+.gloss td{vertical-align:top}
+.gloss .t1{white-space:nowrap;font-weight:700}
+.gloss .t2{color:var(--tx);line-height:1.55}
+.gloss .t3{color:var(--mu);font-size:11.5px;line-height:1.5}
+.searchbar{width:100%;background:var(--panel2);border:1px solid var(--bd2);color:var(--tx);border-radius:8px;padding:9px 11px;font-size:13px;font-family:inherit;margin-bottom:9px}
+.searchbar:focus{outline:none;border-color:var(--ac)}
+.toast{position:fixed;left:50%;bottom:calc(78px + var(--sab));transform:translateX(-50%) translateY(14px);background:var(--panel);border:1px solid var(--ac);color:var(--tx);padding:11px 18px;border-radius:22px;font-size:13px;font-weight:700;z-index:10000;opacity:0;pointer-events:none;transition:opacity .2s,transform .2s;box-shadow:0 8px 28px rgba(0,0,0,.5);max-width:88vw;text-align:center}
+.toast.on{opacity:1;transform:translateX(-50%) translateY(0)}
+.toast.bad{border-color:var(--bad)}.toast.ok{border-color:var(--gd)}
+@media(max-width:860px){
+ .hero{padding:13px;border-radius:13px}
+ .hero-px .big{font-size:40px}
+ .hero-meta{grid-template-columns:repeat(2,1fr);gap:5px 12px;min-width:0;flex:1 1 100%}
+ .dist-row .dl{flex:0 0 106px;font-size:11.5px}
+ .dist-row .dp{flex:0 0 78px;font-size:11.5px}
+ details.fold>summary{font-size:13.5px;padding:12px}
+ details.fold>summary .fs{display:none}
+ .w-big{font-size:64px}
+ .exp{grid-template-columns:1fr}
+ .w-reads .rd .v{font-size:16px}
+}
+</style>
+</head>
+<body>
+<header><div class="wrap">
+ <div class="hrow">
+  <div class="brand">
+   <div class="logo">交易看板 <span>BOE·A500</span></div>
+   <div class="sub" id="dateline">数据：<b class="mono">11-16 13:26 盘中</b>｜ <b class="ac">持仓已确认：159338 700股 @1.0603，仓位 69.8%</b> ｜ 创业板 <span class="bad">−3.14% 位9%</span>、银行ETF <span class="up">+1.34% 位93%</span>（护盘在极致）</div>
+  </div>
+  <div class="spacer"></div>
+  <div class="kpis" id="kpis"></div>
+  <button class="btn pri" onclick="refresh(this)">⟳ 刷新</button>
+  <a class="btn" href="archive.html" style="text-decoration:none;line-height:1.2">📚 主档案</a>
+ </div>
+</div></header>
+<div class="wrap">
+<nav id="tabs">
+ <button class="on" data-t="today"><span class="ic">📌</span>今日</button>
+ <button data-t="layers"><span class="ic">🧭</span>五层</button>
+ <button data-t="levels"><span class="ic">🎯</span>价位</button>
+ <button data-t="orders"><span class="ic">📱</span>条件单</button>
+ <button data-t="review"><span class="ic">📝</span>复盘</button>
+ <button data-t="ref"><span class="ic">📖</span>术语</button>
+</nav>
+<div class="tab on" id="t-today">
+  <div class="hero" id="hero">
+   <div class="hero-top"><span class="badge b-bd" id="hero_env">—</span><span class="mu mono" id="hero_clock">—</span><span class="badge b-nt" id="hero_upd">—</span></div>
+   <div class="hero-px">
+    <div class="big mono" id="hero_price">—</div>
+    <div class="hero-meta">
+     <div><span class="k">持仓</span><b id="hero_qty">—</b></div>
+     <div><span class="k">成本</span><b id="hero_cost">—</b></div>
+     <div><span class="k">浮盈亏</span><b id="hero_pl">—</b></div>
+     <div><span class="k">仓位</span><b id="hero_pos">—</b></div>
+    </div>
+   </div>
+   <div class="dist" id="hero_dist"></div>
+   <div class="hero-act"><div class="ha-t">👉 今天该做</div><ol id="hero_todo"></ol></div>
+   <div class="hero-btns">
+    <button class="btn pri" onclick="openWatch()">🎯 盯盘模式</button>
+    <button class="btn" onclick="copyTodo(this)">📋 复制动作</button>
+    <button class="btn" onclick="expMD()">⬇️ 导出复盘</button>
+   </div>
+  </div>
+ <div class="headline">
+  <div class="hl-top"><span class="hl-k">今日一句话</span><span class="mu" style="font-size:11px">👆 点标题展开</span></div>
+  <ol id="hl_list"></ol>
+ </div>
+ <div class="alert bad" id="overnight"></div>
+ <div class="grid g2">
+  <div class="card">
+   <h3>💼 我的持仓 <span class="n">可编辑 · 自动算浮盈/仓位/股数</span></h3>
+   <div class="tw deskonly" style="border:none"><table>
+    <thead><tr><th>标的</th><th>角色</th><th class="num">数量</th><th class="num">成本</th><th class="num">现价</th><th class="num">浮盈</th><th class="num">市值</th></tr></thead>
+    <tbody id="posbody"></tbody>
+    <tfoot><tr style="background:var(--panel2)"><td colspan="5" style="font-weight:700">合计</td><td class="num" id="sumpl"></td><td class="num" id="summv"></td></tr></tfoot></table></div>
+   <div class="pcards" id="poscards"></div>
+   <div class="foot">总资产 <b class="mono" id="sumta">—</b> ｜ 现金 <b class="mono" id="sumcash">—</b> ｜ 仓位 <b class="mono" id="sumpos">—</b></div>
+   <div class="hint">⚠️ 你的实际持仓还没确认过，请把数量/成本改成真实的 —— 所有派生数字会跟着变。</div>
+  </div>
+  <div class="card">
+   <h3>✅ 今日待办 <span class="n" id="todo_n"></span><span class="spacer"></span><button class="btn sm" onclick="copyTodo(this)">📋 复制</button></h3>
+   <div id="todos"></div>
+   <div class="foot">开盘前只做一件事：<b>把条件单设进券商 App</b>（Tab ④）</div>
+  </div>
+ </div>
+ <div class="grid g3" style="margin-top:12px">
+  <div class="card">      <h3>🧮 减 还是 加？用你的真实持仓算一遍</h3>
+   <div class="row"><span class="lab">你的持仓</span><span class="val mono">159338 <b>700 股 @1.0603</b>｜现价 1.026｜浮亏 <b class="dn">−22.1</b>｜市值 720.09｜总资产 1031.21｜<b class="bad">仓位 69.8%</b>｜现金 310.91</span></div>
+   <div class="row"><span class="lab">① 成本会变吗？</span><span class="val" style="text-align:left"><b class="gd">不会。</b>卖 100 @1.026 → 剩 <b>600 股，成本仍是 1.0603</b>；卖 200 → 500 股，仍是 1.0603。<b>卖出不变成本价，只有买入才动成本。</b>总资产一分不变，浮亏从 −22.1 缩到 −18.96，<b class="gd">仓位 69.8%→59.9%</b></span></div>
+   <div class="row"><span class="lab">② 加三笔的成本降幅</span><span class="val mono">加 300@1.0287 → 1000 股，成本 1.0603→<b>1.0508</b>（<b class="gd">−0.89%</b>）</span></div>
+   <div class="row"><span class="lab">③ 加三笔的代价</span><span class="val mono">仓位 69.8%→<b class="bad">99.8%</b>（敞口 <b class="bad">+42.9%</b>）｜现金 310.91→<b class="bad">2.30</b></span></div>
+   <div class="row"><span class="lab">④ 临界点</span><span class="val" style="text-align:left"><b class="bad">加仓方案只在涨到 1.037 以上才不劣</b>，跌破就开始更差。<b>而死线 1.040 已经破了两天。</b></span></div>
+   <div class="foot"><b>结论：成本降 0.89%，敞口增 42.9% —— 这笔交易不划算。减仓降的是暴露，不降成本，两者不是一回事。</b></div>
+   <div class="row" style="margin-top:6px"><span class="lab">价位 ↓</span><span class="val mono"><b>现状 700@1.0603</b></span><span class="val mono"><b>A 减100→600</b></span><span class="val mono"><b>C 加300→1000</b></span></div>
+   <div class="row"><span class="lab">1.040（反弹）</span><span class="val mono dn">−14.21</span><span class="val mono dn"><b>−12.18</b></span><span class="val mono dn">−10.82</span></div>
+   <div class="row"><span class="lab">1.0287（现价）</span><span class="val mono dn">−22.12</span><span class="val mono dn">−18.96</span><span class="val mono dn">−22.12</span></div>
+   <div class="row"><span class="lab">1.020（硬死线）</span><span class="val mono dn">−28.21</span><span class="val mono dn"><b>−24.18</b></span><span class="val mono bad">−30.82</span></div>
+   <div class="row"><span class="lab">1.000</span><span class="val mono dn">−42.21</span><span class="val mono dn"><b>−36.18</b></span><span class="val mono bad">−50.82</span></div>
+   <div class="row"><span class="lab">0.980</span><span class="val mono dn">−56.21</span><span class="val mono dn"><b>−48.18</b></span><span class="val mono bad">−70.82</span></div>
+   <div class="foot"><b>只有涨到 1.037 以上，加仓方案才划算。往下每跌 1 分钱，减仓方案都少亏一截。</b></div>
+   <div class="row"><span class="lab">摊成本的正解</span><span class="val" style="text-align:left"><b class="ac">场外 A500 联接 I 类 022610</b>（1 元起投、可定投、0 申购费、持有满 7 天 0 赎回费、不用择时、不会跳空）。<b>场内 159338 = 底仓 + 反弹减仓的武器；场外定投 = 摊成本的机器。</b>两件事分工不同，别用场内做摊平。</span></div>
+   <div class="foot"><b>你的 10/30 已经做过一次实证：</b>当天最低 1.022，你买在 1.030 —— 买在最低点能多省 0.008×200 = <b>1.6 元</b>；但如果因为「等最低点」错过、最后在 1.055 加 300 股，多付 0.033×300 = <b>9.9 元</b>。<b>等待最低点的期望收益 1.6 元 ≪ 等待失败的代价 9.9 元。</b></div>
+  </div>
+  <div class="card"><h3>🔭 下午盯盘顺序（13:00–15:00）· 13:26 已更新</h3>
+   <div class="row"><span class="lab">⚠️ 尾盘判据</span><span class="val"><b class="bad">已失效</b>：上证 3608.12 &lt; 3615、159338 1.026 &lt; 1.028 → <b>按规则明日再减 100 股</b></span></div>
+   <div class="row"><span class="lab">① 中际旭创</span><span class="val">现 427.09，<b class="bad">−8.39% 位10%</b>，最低 424 <b>已触及</b></span></div>
+   <div class="row"><span class="lab">② 红利是否扛住</span><span class="val">银行ETF +1.34% 位 <b>93%</b>｜红利低波 +1.04% 位89%｜建行 +1.82% 位92%｜工行 +1.69%</span></div>
+   <div class="row"><span class="lab">③ 159338 位置</span><span class="val" id="w_avg">—</span></div>
+   <div class="row"><span class="lab">④ 159338 委比</span><span class="val"><b class="gd">+89%</b>（买一 62.5 万 / 卖一 3.5 万）→ 有人接</span></div>
+   <div class="row"><span class="lab">⑤ 上证 3593</span><span class="val">现 3608.12；<b>破 3593 = 偏弱档坐实</b></span></div>
+   <div class="row"><span class="lab">⑥ 涨跌停</span><span class="val">涨停 32 / 跌停 12（午盘 33/14）→ 恐慌在减轻</span></div>
+   <div class="foot"><b>铁律：只做条件单里写好的动作，不做新决策。</b>何志坚：这种精细化博弈很难做。</div></div>
+  <div class="card"><h3>📉 今日全景（11/16 13:26）</h3>
+   <div class="row"><span class="lab">上证 / 创业板</span><span class="val mono">3608.12 <span class="dn">−0.72%</span> 位49% / <span class="dn">−3.14%</span> 位 <b class="bad">9%</b></span></div>
+   <div class="row"><span class="lab"><b>社零 / 固投 / 出口</b></span><span class="val mono"><span class="bad">+0.4%</span> / <span class="bad">−8.1%</span> / <span class="up">+31.2%</span></span></div>
+   <div class="row"><span class="lab">159338</span><span class="val mono">1.026 <span class="dn">−1.06%</span> 位36%｜低 1.022｜<b class="bad">换手 16.84%（放量）</b></span></div>
+   <div class="row"><span class="lab">涨停 / 跌停</span><span class="val mono"><span class="up">32</span> / <span class="bad">12</span>（昨 37/33）→ 恐慌在减轻</span></div>
+   <div class="row"><span class="lab">算力链</span><span class="val mono dn">中际 −8.39% 位10%｜新易盛 −7.52%｜天孚 −7.90% 位8%｜工业富联 −7.53% 位2%</span></div>
+   <div class="row"><span class="lab">防御（贴顶了）</span><span class="val mono up">银行ETF +1.34% 位 <b>93%</b>｜红利低波 位89%｜建行 +1.82% 位92%</span></div>
+   <div class="row"><span class="lab">两端都在边际</span><span class="val"><b class="bad">成长贴地 9%</b>（创业板）｜<b class="bad">红利贴顶 93%</b>（银行ETF）→ 护盘到极致 = 一旦红利回落就没了支撑</span></div>
+   <div class="foot"><b>👉 放量下跌 + 两端贴边。减仓优先，别在退潮期摊平。</b></div></div>
+  <div class="card"><h3>📅 本周剩余日历</h3>
+   <div class="row"><span class="lab"><b>11/16 下午</b></span><span class="val">央行 2000 亿买断式逆回购落地（缩量续作 1000 亿）｜4600 亿隔夜逆回购已开展</span></div>
+   <div class="row"><span class="lab"><b>11/17 盘后</b></span><span class="val bad"><b>英伟达 Q3 财报 = 本周判决日</b>（黄仁勋辞任后首份）</span></div>
+   <div class="row"><span class="lab"><b>11/17-18</b></span><span class="val ac">APEC 深圳工商领导人峰会</span></div>
+   <div class="row"><span class="lab">11/17-20</span><span class="val">光储大会（成都）｜11/19-21 智能制造（南京）｜11/19-22 脑机接口（北京）</span></div>
+   <div class="row"><span class="lab">中期</span><span class="val">招商证券：<b class="wn">海外 12 月加息成为基准情形</b>；固收减仓压制权益</span></div>
+   <div class="row"><span class="lab">机构观点</span><span class="val up">国泰海通：投资者<b>过度悲观</b>，波动或提供交易窗口，标配 A 股</span></div>
+   <div class="foot"><b>财报前不留仓是最稳的。</b>英伟达本周 −13%、市值从 5.8 万亿降到 3.9 万亿。</div></div>
+ </div>
+</div>
+<div class="tab" id="t-layers">
+ <div class="alert wn">每层按 <b>① 看什么 → ② 读数 → ③ 判定 → ④ 动作</b> 填。层不能跳：<b>跳过②直接看④ = 你之前「盯中际旭创」；跳过⑤ = 1.072 那次加仓。</b></div>
+ <div class="grid g5" id="layers"></div>
+ <div class="card" style="margin-top:12px"><h3>🔧 框架用了一周，暴露的两个缺陷（已修）</h3>
+  <div class="row"><span class="lab">缺陷①</span><span class="val" style="text-align:left">复合条件（"且换手放量"）在边界上让人反复纠结 → <b class="ac">条件写成"触及即减"，量能只做加分项</b></span></div>
+  <div class="row"><span class="lab">缺陷②</span><span class="val" style="text-align:left">规则写在聊天里 ≠ 规则被执行 → <b class="ac">所有条件都要变成券商 App 的「条件单」</b></span></div>
+    <div class="row"><span class="lab">缺陷③</span><span class="val" style="text-align:left">规则只有「触发就执行」太粗 → <b class="ac">死线破了减仓，但不砸光</b>：11/16 区间位 82% + 缩量 = 低位有承接，留 300 股用反弹减仓区管住，比全清更优</span></div>
+  <div class="row"><span class="lab">框架的作用</span><span class="val" style="text-align:left"><b>不是预测，是让你在正确的时候保持不动。</b>11/03 三个"不动"换来 11/04 的 +3.3 元浮盈转正</span></div></div>
+</div>
+<div class="tab" id="t-levels">
+ <div class="grid g2">
+    <div class="card lay4"><h3>159338 中证A500ETF <span class="n" id="px_now">—</span></h3>
+   <div class="tw sticky deskonly" style="border:none"><table><thead><tr><th>类型</th><th>价位</th><th>依据</th><th>动作</th></tr></thead><tbody>
+    <tr style="background:rgba(248,81,73,.07)"><td><b>死线（已破 2 日）</b></td><td class="mono up">1.040</td><td>11/13 低 1.034、11/16 低 1.022</td><td class="bad"><b>今天减 100 股</b></td></tr>
+    <tr><td><b>硬死线</b></td><td class="mono up">1.020</td><td>今日最低 1.022，<b>差 0.002</b></td><td class="bad">破 → 再减 200 股</td></tr>
+    <tr><td><b>反弹减仓区（新）</b></td><td class="mono up">1.040–1.045</td><td>不再等 1.055 —— 环境更差</td><td class="wn">减 100–200 股</td></tr>
+    <tr><td>加仓区</td><td class="mono up">—</td><td>①换手13.58%&lt;18% ✓｜②权重健康度 ✗｜③守住1.040 ✗</td><td class="bad"><b>只成立 1 条，不买</b></td></tr>
+    <tr><td>均线</td><td class="mono">MA5 ≈1.052｜MA10 ≈1.053</td><td>现价 1.031，双线均已跌破</td><td class="bad">仍在线下</td></tr>
+    <tr><td>估值</td><td class="mono">PE ≈15.4，近1年分位 ≈40%</td><td>已离开极低估区</td><td class="wn">不再便宜</td></tr>
+    <tr><td>量能</td><td class="mono">换手 13.58%（半日）</td><td>21.33%→13.58%，<b>明显缩量</b></td><td class="gd">抛压在衰减</td></tr>
+   </tbody></table></div>
+   <div class="mobonly" id="levels159"></div></div>
+    <div class="card lay2"><h3>513050 中概互联 <span class="n" id="px2_now">—</span></h3>
+   <div class="tw sticky deskonly" style="border:none"><table><thead><tr><th>类型</th><th>价位</th><th>依据</th><th>动作</th></tr></thead><tbody>
+    <tr style="background:rgba(227,179,65,.07)"><td><b>减半区</b></td><td class="mono up">0.950–0.960</td><td><b>今日高 0.951 已到</b>，+1.61%，区间位 87%</td><td class="wn"><b>持有者减半</b></td></tr>
+    <tr><td>止损</td><td class="mono up">0.930</td><td>今日低 0.936，未破</td><td class="bad">破 → 清仓</td></tr>
+    <tr><td>买入区</td><td class="mono">—</td><td>仍在 MA5 0.984 之下、0.975 止损线之下</td><td class="dim"><b>今天不接</b></td></tr>
+    <tr><td>⚠️ 必查</td><td class="mono">溢价率</td><td>跨境 ETF，溢价随情绪波动</td><td class="ac">&gt;1% 谨慎 &gt;2% 别追</td></tr>
+    <tr><td>驱动</td><td class="mono">港股回购扩容</td><td>恒指 +0.88%、腾讯 +1.97%、美团 +3.37%</td><td class="ac">不是英伟达</td></tr>
+    <tr><td>下个节点</td><td class="mono">11/17 盘后</td><td>英伟达 Q3 财报</td><td class="bad">财报前不留仓</td></tr>
+   </tbody></table></div>
+   <div class="mobonly" id="levels513"></div>
+   <div class="foot"><b>T+0 = 唯一能当天纠错的工具。</b>这是它在你组合里的真正角色。</div></div>
+ </div>
+ <div class="card" style="margin-top:12px"><h3>🧮 工具一 · 减仓/加仓股数计算器</h3>
+  <div class="calc"><div class="row2"><label>标的</label>
+   <select id="cl_t" onchange="calcOut()" style="background:var(--panel);border:1px solid var(--bd2);color:var(--tx);border-radius:6px;padding:5px 8px;font-family:inherit;font-size:12.5px">
+    <option value="0">159338 中证A500</option><option value="1">513050 中概互联</option></select>
+   <label>目标价</label><input type="number" id="cl_px" value="1.060" step="0.001" oninput="calcOut()" style="width:96px">
+   <label>现价</label><span class="mono" id="cl_now" style="font-weight:700"></span></div>
+   <div class="out" id="cl_out">—</div>
+   <div class="hint">用途：把「我想减仓」翻译成「减多少股」。券商 App 支持 100 股整数倍。</div></div></div>
+ <div class="card" style="margin-top:12px"><h3>💰 工具二 · 513050 溢价率检查器</h3>
+  <div class="calc"><div class="row2"><label>App 溢价率</label>
+   <input type="number" id="pr_val" placeholder="例如 1.2" step="0.1" oninput="prOut()" style="width:96px"> %
+   <span class="mu" style="font-size:11.5px">（券商 App → 盘口 → 溢价率）</span></div>
+   <div class="out nt" id="pr_out">填入数字后自动判定</div>
+   <div class="hint">为什么必须查：中概互联是跨境 ETF，溢价会随情绪剧烈波动。今天 +1.61% 的反弹是<b>港股回购扩容</b>驱动，不是英伟达 —— 这种「无基本面催化的情绪反弹」最容易出现<b>溢价快速抬升</b>，追进去就是替别人接盘。</div></div></div>
+ <div class="card" style="margin-top:12px">  <h3>🧮 一眼记住的四组数字</h3>
+  <div class="grip">
+   <div class="mini"><div class="k">A500 死线 / 硬死线</div><div class="v mono bad">1.040 / 1.020</div></div>
+   <div class="mini"><div class="k">A500 反弹减仓区</div><div class="v mono wn">1.040–1.045</div></div>
+   <div class="mini"><div class="k">A500 换手率（半日）</div><div class="v mono gd">13.58%</div></div>
+   <div class="mini"><div class="k">513050 减半 / 止损</div><div class="v mono wn">0.950 / 0.930</div></div></div></div>
+ </div>
+<div class="tab" id="t-orders">
+ <div class="alert gd">📱 <b>「没时间盯盘」的真正解法：把规则交给机器。</b>去券商 App → 交易 → <b>条件单 / 委托单</b>，把下面几条设进去，你的盯盘频率可以降到每周一次。<br>⚠️ 条件单是「到价自动下单」，<b>不保证成交</b>（跳空低开可能直接跳过价）。</div>
+ <div class="card"><h3>📋 待设置的条件单 <span class="n" id="ord_n"></span><span class="spacer"></span><button class="btn sm" onclick="copyOrders(this)">📋 复制</button></h3>
+  <div id="orders"></div><div class="foot">全部勾选完成后，把这一屏截图存进手机相册 —— 那就是你的交易纪律。</div></div>
+ <div class="card" style="margin-top:12px">      <h3>🚦 触发状态实时对照（11/16 13:26）</h3>
+  <div class="tw sticky"><table><thead><tr><th>条件</th><th>触发价</th><th>13:26 实际</th><th>状态</th></tr></thead><tbody>
+   <tr><td>159338 死线</td><td class="mono">&lt;1.040</td><td class="mono">最低 <b>1.022</b> ✅</td><td class="mono bad"><b>连续 2 日已破 → 减 100 股</b></td></tr>
+   <tr><td>159338 硬死线</td><td class="mono">&lt;1.020</td><td class="mono">现 1.026（差 0.006）</td><td class="mono wn">逼近，未破</td></tr>
+   <tr><td>159338 今日低点</td><td class="mono">&lt;1.022</td><td class="mono">现 1.026（差 0.004）</td><td class="mono wn">一步之遥</td></tr>
+   <tr><td>159338 反弹减仓</td><td class="mono">≥1.040</td><td class="mono">高 1.033</td><td class="mono dim">未触发</td></tr>
+   <tr><td>尾盘判据①</td><td class="mono">上证 ≥3615</td><td class="mono">现 <b>3608.12</b></td><td class="mono bad"><b>已失效</b></td></tr>
+   <tr><td>尾盘判据②</td><td class="mono">159338 ≥1.028</td><td class="mono">现 <b>1.026</b></td><td class="mono bad"><b>已失效</b></td></tr>
+   <tr><td>仓位</td><td class="mono">单标的 ≤50%</td><td class="mono"><b>69.8%</b></td><td class="mono bad"><b>超上限 40%</b></td></tr>
+   <tr><td>513050</td><td class="mono">—</td><td class="mono"><b>确认无持仓</b></td><td class="mono dim">相关条件单已删除</td></tr>
+   <tr><td>事件提醒</td><td class="mono">11/17 盘后</td><td class="mono">英伟达 Q3 财报</td><td class="mono ac">待触发</td></tr>
+  </tbody></table></div></div>
+ </div>
+<div class="tab" id="t-review">
+ <div class="grid g2">
+  <div class="card"><h3>① 每日 5 分钟（收盘后填）</h3>
+   <textarea id="r_daily" placeholder="上证/创业板涨跌 __ ｜ 两市成交 __亿 vs 上半日 __ ｜ 涨停__/跌停__ ｜ 主线__ (涨__%) ｜ 159338 区间位__%，换手__% ｜ 今日操作：无/买__/卖__ ｜ □按规则执行"></textarea>
+   <div class="hint">自动保存在本机浏览器，下次打开还在。</div></div>
+  <div class="card"><h3>② 每周 15 分钟（周五填）</h3>
+   <textarea id="r_week" placeholder="账户：总资产__ 仓位__ 浮盈亏__ ｜ 159338 份额变化：增/减__ (净申购__亿) ｜ PE__ (分位__%) ｜ 前十大权重本周创新低__只 ｜ 红利是否新高(拥挤度)__ ｜ 按规则执行__笔 / 违规__笔 ｜ 本周唯一结论：______"></textarea>
+   <div class="hint">最关键的一格：<b>159338 份额变化</b> —— 份额增 = 有人在净申购。</div></div>
+ </div>
+ <div class="grid g2" style="margin-top:12px">
+  <div class="card"><h3>③ 每月 30 分钟（真正决定动作）</h3>
+   <textarea id="r_month" placeholder="① 目标比例 vs 实际比例 → 要不要再平衡
+② A500 PE 分位__ → 要不要继续定投/停止定投
+③ 四层情绪：进攻/中性/防守 → 总仓位上限设__
+④ 下个月唯一要做的一件事：______"></textarea></div>
+  <div class="card"><h3>④ 交易日志（四栏）</h3>
+   <textarea id="r_log" placeholder="日期 | 标的 | 动作 | ①入场理由(三段式) | ②离场条件(四触发) | 实际动作 | ④是否按规则执行 □是□否
+
+例：11/10 | 513050 | 买100@1.006 | 跨市场/T+0纠错/隔夜金龙跌 | 0.975止损 | 买100 | □是"></textarea>
+   <div class="hint"><b>第四栏最重要</b> —— 盈亏是结果，纪律是能力。</div></div>
+ </div>
+ <details class="fold" style="margin-top:12px"><summary>💾 导出 / 备份 / 恢复<span class="fs">复盘数据别只存在手机里</span></summary>
+  <div class="fb">
+   <div class="note" style="margin-bottom:8px">你的复盘记录只存在这台手机的浏览器里。<b>清缓存、换手机都会丢。</b>下面几种方式随便挑一种，<b>每周导出一次就够</b>。</div>
+   <div class="exp">
+    <button class="btn" onclick="expMD()">📄 导出 Markdown</button>
+    <button class="btn" onclick="expCSV()">📊 导出 CSV</button>
+    <button class="btn" onclick="expJSON()">🧩 导出 JSON</button>
+    <button class="btn" onclick="expCode()">🔑 生成备份短码</button>
+    <button class="btn" onclick="expSnapshot()">🖼️ 整页快照 HTML</button>
+    <button class="btn" onclick="expQuoteCSV()">📈 行情历史 CSV</button>
+    <button class="btn" onclick="impFile()">📂 导入文件</button>
+    <button class="btn" onclick="copyHoldings(this)">🧾 复制持仓+条件单</button>
+   </div>
+   <textarea class="code" id="exp_code" placeholder="点「生成备份短码」后，这里会出现一段文本 —— 复制存到微信收藏 / 备忘录。恢复时把它粘回来点下面的按钮即可。"></textarea>
+   <div class="exp" style="margin-top:8px">
+    <button class="btn ok" onclick="impCodeFromBox()">✅ 从上面文本框恢复</button>
+    <button class="btn wn" onclick="impFile()">📂 从文件恢复</button>
+   </div>
+   <input type="file" id="imp_file" accept=".json,.csv,.md,.txt" style="display:none" onchange="impFileHandle(this)">
+   <div class="note" style="margin-top:8px"><b>建议：</b>每周五复盘完 → 点「生成备份短码」→ 全选复制 → 粘到微信「文件传输助手」或自己备忘录。一个月清一次缓存也不怕。</div>
+  </div>
+ </details>
+ <div class="card" style="margin-top:12px"><h3>📌 已完成动作记录（框架实际运行结果）</h3>
+  <div class="tw sticky"><table><thead><tr><th>日期</th><th>动作</th><th>事前规则</th><th>结果</th><th>执行</th></tr></thead><tbody>
+   <tr><td class="mono">10/26</td><td>京东方 100 股 @4.83–4.84 清仓</td><td>死线 4.80 已破</td><td class="dn mono">11/10 收 4.50（避 6%+）</td><td class="gd mono">✅</td></tr>
+   <tr><td class="mono">10/29</td><td>159338 卖 300 @1.0605</td><td>天量滞涨 + 反抽失败</td><td class="up mono">躲过 −10 元</td><td class="gd mono">✅</td></tr>
+   <tr><td class="mono">10/30</td><td>159338 买 200 @1.030</td><td>下跌第三天加仓（事后看错）</td><td class="up mono">+8.4 元</td><td class="wn mono">⚠️ 侥幸</td></tr>
+   <tr><td class="mono">11/03</td><td>159338 不减仓</td><td>1.027 未有效跌破</td><td class="up mono">11/04 +3.00%，浮亏转正</td><td class="gd mono">✅</td></tr>
+   <tr><td class="mono">11/04</td><td>159338 不加仓</td><td>换手 22.11% 未&lt;18%</td><td class="mu mono">少赚约 3 元，换来避开接刀</td><td class="gd mono">✅</td></tr>
+   <tr><td class="mono">11/05</td><td>159338 减 200 股 @1.084</td><td>反弹至 1.075–1.085</td><td class="up mono">工具仓落袋 +10.8 元</td><td class="gd mono">✅</td></tr>
+   <tr style="background:rgba(227,179,65,.07)"><td class="mono">11/06–11/10</td><td>159338 不减不加</td><td>1.050 破了又收回、换手未到 18%</td><td class="mu mono">第 7–11 笔「按规则不动」</td><td class="gd mono">✅</td></tr>
+   <tr><td class="mono">11/11</td><td>159338 ≥1.065 减 200</td><td>反弹至 MA5 上方减仓</td><td class="bad mono">最高 1.066，<b>条件触发未执行</b></td><td class="bad mono">❌</td></tr>
+   <tr><td class="mono">11/13</td><td>159338 减 100 股</td><td>死线 1.040 有效跌破（最低 1.034）</td><td class="bad mono">条件触发<b>未执行</b></td><td class="bad mono">❌</td></tr>
+   <tr style="background:rgba(76,154,255,.07)"><td class="mono">11/16 午盘</td><td>159338 减 100 股（手动）</td><td>死线连续第 2 日破 + 数据差档</td><td class="mu mono">减而不砸光：区间位 82% + 缩量</td><td class="wn mono">待确认</td></tr>
+   <tr style="background:rgba(63,185,80,.07)"><td class="mono">11/16 13:26</td><td><b>持仓校准：700 股 @1.0603，仓位 69.8%</b></td><td>用户提供券商截图</td><td class="mu mono">513050 确认无持仓；成本真相＝卖出不变成本价</td><td class="gd mono">✅</td></tr>
+   <tr style="background:rgba(248,81,73,.06)"><td class="mono">11/16 收盘</td><td><b>硬死线 1.020 盘中击穿（最低 1.018），收 1.024</b></td><td>死线破了就走</td><td class="bad mono">触发减 100 条件；创业板 −4.37%、中际 −12.28%、红利收在日内最高</td><td class="wn mono">待确认</td></tr>
+   <tr style="background:rgba(163,113,247,.07)"><td class="mono">11/16 缺陷④</td><td><b>死线设在日内噪音里</b> → 下移到 1.008</td><td>死线应在 1.5–2 倍日振幅之外</td><td class="mu mono">今日振幅 1.46%，旧死线距现价仅 0.39% → 必被触及</td><td class="gd mono">✅ 已修</td></tr>
+   <tr style="background:rgba(248,81,73,.06)"><td class="mono">11/16 13:01</td><td><b>尾盘判据失效 → 明日再减 100</b></td><td>上证 ≥3615 且 159338 ≥1.028</td><td class="bad mono">两条判据 30 分钟内双双失效（3609.57 / 1.027）</td><td class="wn mono">待确认</td></tr>
+   <tr style="background:rgba(163,113,247,.07)"><td class="mono">11/16 案例</td><td><b>FCC 传闻驱动反弹的完整样本</b></td><td>11/11 传闻松动 → 暴涨 → 11/13、11/16 连杀创新低</td><td class="mu mono">传闻级催化 = 涨得快、回吐更快</td><td class="gd mono">✅ 已验证</td></tr>
+  </tbody></table></div>
+  <div class="foot"><b>连续 5 个交易日「按规则不动」= 纪律；连续 2 次「条件触发没执行」= 纪律漏洞。</b>后者比前者更贵 —— 它不是运气问题，是流程问题。<b>11/16 起：所有条件落进券商 App 的条件单。</b></div></div>
+</div>
+<div class="tab" id="t-ref">
+ <div class="grid g2">
+  <div class="card"><h3>📖 白话词典 <span class="n" id="gloss_n"></span></h3>
+   <input class="searchbar" id="gloss_q" placeholder="🔍 输入词查（如：区间位 / 委比 / 死线 / 换手）" oninput="renderGloss()">
+   <div class="gcards" id="glossbody"></div>
+   <div class="foot"><b>用法：</b>看到不懂的词就来这里搜。每条都配了你自己的真实数字，看一眼就懂。</div>
+  </div>
+  <div class="card"><h3>📖 术语速查（专业定义）</h3><div class="tw"><table><thead><tr><th>术语</th><th>定义</th></tr></thead><tbody>
+   <tr><td><b>区间位</b></td><td>(现价−最低)÷(最高−最低)。0%=贴地，100%=贴顶</td></tr>
+   <tr><td><b>均价线（黄线）</b></td><td>当日成交额÷成交量。价在上=买盘主导</td></tr>
+   <tr><td><b>换手率</b></td><td>成交份额÷总份额。连续&gt;20%=换手未完</td></tr>
+   <tr><td><b>高低切换</b></td><td>钱从一个风格搬到另一个。切过去的高位，切过来的低位</td></tr>
+   <tr><td><b>破位</b></td><td>跌破关键支撑且未收回。支撑=前低+均线+整数关，取最近的</td></tr>
+   <tr><td><b>背离</b></td><td>价涨但份额减 = 派发</td></tr>
+   <tr><td><b>净申购/份额</b></td><td>ETF 最独特、最被忽略的指标</td></tr>
+   <tr><td><b>T+0 / T+1</b></td><td>跨境/商品/债券/货币=T+0；A股股票型=T+1</td></tr>
+   <tr><td><b>折溢价</b></td><td>场内价−净值。跨境ETF高频；&gt;2%=为溢价买单</td></tr>
+   <tr><td><b>死线</b></td><td>预设的强制离场价。必须事前写死</td></tr>
+   <tr><td><b>工具仓 vs 底仓</b></td><td>工具仓=波段用的，优先落袋；底仓=长期Beta，等级别修复</td></tr>
+   <tr><td><b>倒T</b></td><td>先卖后买（任何品种都行）；正T需要T+0</td></tr>
+   <tr><td><b>退潮</b></td><td>题材五段论的第 5 段。信号：前期龙头开始跌停 + 高位抱团松动 + 涨停数快速萎缩</td></tr>
+   <tr><td><b>日内强势方向=卖点</b></td><td>弱势轮动市里，当天最强的方向是别人今天买的 → 你明天要卖</td></tr>
+   <tr><td><b>低吸点</b></td><td>弱势但有支撑和轮动预期的方向。我们要求更严：<b>换手&lt;18% + 权重健康度转好 + 守住死线，三条全中</b></td></tr>
+   <tr><td><b>传闻级催化</b></td><td>未获官方确认的消息（如 FCC 规则松动）。<b>涨得快、回吐更快</b>，不能当基本面</td></tr>
+   <tr><td><b>价↓+委差↑</b></td><td>有人接（挂大买单托价）；价↑+委差↑才是真买；委差→负 = 没人接</td></tr>
+   <tr><td><b>卖出不变成本价</b></td><td>减仓<b>不会</b>推高成本价，只有买入才会。减仓改变的是<b>暴露</b>和<b>浮亏金额</b>，不是成本</td></tr>
+   <tr><td><b>摊成本的正确载体</b></td><td>场外联接/定投（1元起投、不用择时、不会跳空）。场内 ETF 是 T+1 + 整手，做不了摊平</td></tr>
+  </tbody></table></div></div>
+  <div class="card"><h3>🗓 事件日历</h3><div class="tw"><table><thead><tr><th>日期</th><th>事件</th><th>影响</th></tr></thead><tbody>
+      <tr style="background:rgba(248,81,73,.07)"><td class="mono"><b>11/16 10:00</b></td><td><b>中国 10 月经济数据</b></td><td class="bad">社零 +0.4%、固投 −8.1%</td></tr>
+   <tr style="background:rgba(248,81,73,.07)"><td class="mono"><b>11/17 盘后</b></td><td><b>英伟达 Q3 财报</b>（黄仁勋辞任后首份）</td><td class="bad">本周判决日 · AI 硬件链定价</td></tr>
+   <tr style="background:rgba(76,154,255,.07)"><td class="mono">11/17–18</td><td>APEC 深圳工商领导人峰会</td><td class="ac">外部政策信号</td></tr>
+   <tr><td class="mono">11/17–20</td><td>光储大会（成都）</td><td class="dim">新能源</td></tr>
+   <tr><td class="mono">11/19–21</td><td>智能制造大会（南京）</td><td class="dim">机器人/工业母机</td></tr>
+   <tr><td class="mono">11/19–22</td><td>脑机接口大会（北京）</td><td class="dim">题材</td></tr>
+   <tr><td class="mono">11 月中</td><td>美国 CPI / PPI</td><td class="bad">12 月加息预期</td></tr>
+   <tr><td class="mono">11 月上旬</td><td>TrendForce 11 月面板报价</td><td class="dim">京东方/面板链</td></tr>
+   <tr><td class="mono">12 月</td><td>美联储议息</td><td class="bad">招商：海外加息成基准情形</td></tr>
+   <tr><td class="mono">待定</td><td><b>FCC Covered List 规则</b>（光模块 65% BOM 本土化）</td><td class="bad">松动传闻 = 11/11 暴涨；未证实 = 11/13、11/16 连杀</td></tr>
+   <tr><td class="mono">持续</td><td>A500 PE 分位 / 159338 份额变化</td><td class="ac">每周查</td></tr>
+  </tbody></table></div><div class="foot"><b>每周末花 15 分钟更新这张表，然后只决定一件事：下周盯哪 3 个变量。</b></div></div>
+ </div>
+ <div class="card" style="margin-top:12px"><h3>📄 一页纸总纲</h3>
+  <div class="tw sticky"><table><thead><tr><th>层</th><th>唯一要问的问题</th><th>关键指标</th><th>动作</th></tr></thead><tbody>
+   <tr><td><b>① 宏观</b></td><td>为什么会有钱进这个市场？</td><td>政策日历｜油价→通胀｜PMI方向与结构</td><td class="ac">定总仓位上限</td></tr>
+   <tr><td><b>② 市场</b></td><td>现在能不能做？</td><td>涨停/跌停｜量能｜最强板块｜红利被砸还是独涨</td><td class="ac">定进攻/防守</td></tr>
+   <tr><td><b>③ 板块</b></td><td>钱正在往哪搬？</td><td>高低切换｜涨的低波还是高波｜题材五段论</td><td class="ac">定配哪一池</td></tr>
+   <tr><td><b>④ 标的</b></td><td>买哪一个、什么价？</td><td>估值分位｜份额变化｜区间位+均价线｜权重健康度</td><td class="ac">定买/不买/换</td></tr>
+   <tr><td><b>⑤ 仓位</b></td><td>买多少、错了亏多少？</td><td>单标的上限50%｜工具仓/底仓｜预设死线</td><td class="ac">定多少股</td></tr>
+   <tr><td><b>⑥ 复盘</b></td><td>我按规则做了吗？</td><td>三张表 + 执行打勾率</td><td class="ac">定下次改什么</td></tr>
+  </tbody></table></div>
+  <div class="foot"><b>三句话：</b>① 你的问题不是"不知道买什么"，是"不知道什么时候不该动"。② 宽基的正确用法是<b>买 Beta、攒份额、不预测</b>。③ 你缺的不是信息，是<b>事前写下的规则 + 事后的执行记录</b>。</div></div>
+</div>
+</div>
+<script>
+const D={
+ env:"硬死线盘中破了 · 收盘收回", envType:"b-bd", tot:1053.11,
+ pos:[
+  {n:"159338 中证A500",code:"sz159338",role:"贝塔底仓",qty:700,cost:1.0603,px:1.024},
+  {n:"513050 中概互联",code:"sh513050",role:"跨市场 T+0",qty:0,cost:0.975,px:0.947}
+ ],
+ px:{
+  sz159338:{px:1.024,chg:-1.25,hi:1.033,lo:1.018,pos:40,turn:21.64},
+  sh512800:{px:0.909,chg:1.34,hi:0.91,lo:0.896,pos:93,turn:7.0},
+  sh512890:{px:1.258,chg:1.04,hi:1.26,lo:1.241,pos:89,turn:1.52},
+  sh518880:{px:7.909,chg:-0.57,hi:7.942,lo:7.894,pos:31,turn:2.51},
+  sh510300:{px:4.061,chg:-0.54,hi:4.075,lo:4.045,pos:53,turn:1.13},
+  sh513050:{px:0.946,chg:1.28,hi:0.951,lo:0.936,pos:67,turn:4.46},
+  sh563360:{px:1.083,chg:-1.19,hi:1.09,lo:1.08,pos:30,turn:10.91},
+  sh588000:{px:1.298,chg:-4.14,hi:1.34,lo:1.294,pos:9,turn:5.16},
+  sh512480:{px:0.761,chg:-4.04,hi:0.787,lo:0.757,pos:13,turn:4.88},
+  sh562500:{px:0.835,chg:-2.34,hi:0.848,lo:0.827,pos:38,turn:3.02},
+  sh512010:{px:0.381,chg:0.0,hi:0.382,lo:0.375,pos:86,turn:1.95},
+  sh512690:{px:0.443,chg:0.68,hi:0.446,lo:0.436,pos:70,turn:2.62},
+  sz159206:{px:1.115,chg:-5.11,hi:1.175,lo:1.114,pos:2,turn:3.37}
+ },
+ layers:[
+  {n:"① 宏观",cls:"lay1",q:"为什么会有钱进这个市场？",
+   rows:[["10月数据","<b class='bad'>社零 +0.4%</b>（9月 +1.1%，回落 0.7pct）｜<b class='bad'>1-10月固投 −8.1%</b>（降幅再扩大 0.9pct）｜地产投资 <b class='bad'>−21.6%</b>｜民间投资 −11.4%"],["生产端","<b class='up'>工业增加值 +4.8%</b>｜装备制造 +10.6%｜高技术制造 +17.6%｜机器人产量 +26.0%"],["唯一强项","<b class='up'>出口 +31.2%（+28.7%）</b>、进口 +34.7%"],["通胀结构","<b class='wn'>PPI +5.7%</b>（扩大 0.7pct）：油气 +35%、石油加工 +29.9%、化工 +16.4%、煤炭 +36.6%｜CPI +0.7%"],["流动性","<b>央行开展 4600 亿隔夜逆回购</b>｜中长期资金年内净买入 A 股超 6000 亿"]],
+   v:"供需错配极端",vt:"b-bd",a:"供强需弱 → 上下游利润再分配；出口强靠抢份额，等于压价"},
+  {n:"② 市场",cls:"lay2",q:"现在能不能做？",
+   rows:[["宽度","涨停 32 / 跌停 12 → 恐慌减轻"],["量能","两市 <b>1.48 万亿</b>（11/13 是 1.656 万亿）→ <b>缩量下跌</b>"],["收盘","<b class='bad'>上证 3602.57 −0.87% 位44%、深成 −2.53% 位20%、创业板 <b>−4.37% 位12%</b>、科创50 <b>−5.16%</b>、中证1000 −3.03% 位16%</b>"],["主线强度","中际 <b class='bad'>−12.28%</b> 位6%、天孚 <b class='bad'>−11.83%</b> 位4%、新易盛 −11.08% 位10%、工业富联 −9.68% 位4%、寒武纪 −8.27%"],["防御","<b class='up'>银行ETF +2.23% 位 100%（收日内最高）、工行 +2.26% 位100%、红利 +1.45% 位92%、茅台 +1.30% 位97%、美的 +2.35% 位95%</b>"],["159338","<b class='bad'>最低 1.018 破了硬死线 1.020</b>，收 1.024，区间位 40%，换手 <b class='bad'>21.64%</b>（天量）"]],
+   v:"硬死线盘中破了",vt:"b-bd",a:"红利收在最高=拥挤度顶，明天回撤风险；成长连续两天崩塌"},
+  {n:"③ 板块",cls:"lay3",q:"钱正在往哪搬？",
+   rows:[["崩（算力链）","中际 <b class='bad'>−7.70%</b> 位20%（<b>创年内新低</b>，成交 133.5 亿两市第一，主力净卖出 12 亿）｜新易盛 −6.97%｜天孚 −7.14%｜工业富联 −6.71%（破一年最低收盘）"],["涨（红利）","工行/建行/成都银行/南京银行/杭州银行/青岛银行 <b>创历史新高</b>，四大行总市值破 10 万亿｜银行 ETF +1.23% 位86%｜美的创新高｜古井贡酒 +6%"],["能源上游","PPI 源头受益：煤炭 +36.6%、油气 +35%、石油加工 +29.9%"],["新题材","<b>固态电池</b>（七部门：2030 规模化）湃科技 20cm 涨停｜稀土（中国稀土复牌涨停）｜AI 漫剧"],["新利空","康方生物 −15%（依沃西 FDA 未批）｜沪银 −6%｜30 年国债期货 −0.5% 创新低"]],
+   v:"上下游利润再分配",vt:"b-wn",a:"一个原因解释全部涨跌；红利拥挤度是最大尾部风险"},
+  {n:"④ 标的",cls:"lay4",q:"买哪一个、什么价？",
+   rows:[["159338","<b class='bad'>1.026（−1.06%），最低 1.022，距硬死线 1.020 只差 0.006</b>；区间位 <b class='bad'>36%</b>；换手 <b class='bad'>16.84%（放量下跌）</b>"],["权重健康","<b class='bad'>中际位10% + 新易盛位18% + 工业富联位2%</b> → A500 前十大至少 3 只贴地"],["加仓三条件","①换手 16.84%&lt;18% <b class='wn'>勉强✓但在升</b>｜②权重健康度 <b class='bad'>✗</b>｜③守住 1.040 <b class='bad'>✗</b> → <b>只成立 1 条，不加</b>"],["两端贴边","<b class='bad'>创业板位 9%（贴地）</b>｜<b class='bad'>银行 ETF 位 93%（贴顶）</b> → 护盘到极致"],["513050","<b class='gd'>确认无持仓</b>"],["第三方交叉验证","何志坚 11/16：<b>「日内强势的方向是卖点」</b>——今天最强的银行/红利正是这句话的对象"],["另一个载体","<b class='ac'>场外 A500 联接 022610 定投</b> = 摊成本的机器；场内只做底仓与反弹减仓"]],
+   v:"死线续破 · 承接减弱",vt:"b-bd",a:"减 100 股不砸光；反弹 1.040–1.045 再减"},
+  {n:"⑤ 仓位",cls:"lay5",q:"买多少、错了亏多少？",
+   rows:[["真实持仓","<b class='bad'>159338 700 股 @1.0603，收盘 1.024 → 浮亏 −25.41 元（−3.42%）</b>｜市值 716.80｜仓位 69.5%｜现金 310.91"],["减100后","600 股 → 浮亏 −21.78 元，<b>仓位 59.6%</b>，成本价仍 1.0603"],["死线击穿","<b class='bad'>今日最低 1.018 < 硬死线 1.020</b>（收盘 1.024 收回）→ 按规则该减 100"],["规则缺陷④","<b>死线放在了日内噪音里</b>：今日振幅 1.46%，1.020 距现价仅 0.39% → 必被触及。应下移到 1.008 或改收盘触发"],["目标仓位","<b>400 股 ≈ 40%</b>（反弹 1.040 减 200 / 破 1.018 减 100 / 破 1.008 减 200）"],["513050","<b class='gd'>确认无持仓</b> → 相关条件单全部删除"],["摊成本载体","<b class='ac'>场外 A500 联接 022610</b>（1元起投/可定投/0申购费/满7天0赎回）｜场内不做摊平"]],
+   v:"浮亏 −25.41 元",vt:"b-bd",a:"明天开盘按规则减 100；死线改 1.008；剩余用条件单管住"}
+ ],
+ todos:[
+  {s:"on",act:"⚠️ 今天硬死线 1.020 盘中破了（最低 1.018）→ 按规则明天开盘减 100 股",px:"明天开盘",cond:"159338 最低 1.018 < 硬死线 1.020，收盘 1.024 收回",
+   why:"<b>规则没有失效，是死线设在了日内噪音里。</b>今天振幅 1.46%，而 1.020 距现价只有 0.39% —— 必被触及。明天开始死线要放到噪音之外"},
+  {s:"on",act:"把硬死线从 1.020 下移到 1.008（现价下方 1.56% > 今日振幅 1.46%）",px:"1.008",cond:"规则缺陷④：死线必须设在 1.5–2 倍日振幅之外，否则必被噪音打穿",
+   why:"今天的教训。<b>下移死线 = 少被洗一次，但真跌破时亏更多。</b>这是我建议的方向，等你确认"},
+  {s:"on",act:"条件单改成 3 条（今天那条 ≤1.020 已被触发过）",px:"—",cond:"≤1.018 卖 100｜≤1.008 卖 200｜≥1.040 卖 200",
+   why:"如果你昨天挂的是 ≤1.020 卖 100，今天 1.018 时应该已经成交了；没挂的话明天开盘直接执行"},
+  {s:"wait",act:"盯明天开盘：红利会不会冲高回落（今天收在日内最高）",px:"—",cond:"银行ETF +2.23% 位100%（收最高）、工行 +2.26% 位100%、红利 +1.45% 位92%、美的 +2.35% 位95%",
+   why:"<b>红利今天是拥挤度顶，不是安全垫。</b>它一旦回撤，指数会失去唯一支撑 —— 这是明天最大的风险"},
+  {s:"wait",act:"盯明天开盘：创业板还会不会继续杀（今天 −4.37%，区间位 12%）",px:"—",cond:"创业板 −4.37%｜科创50 −5.16%｜中证1000 −3.03% 位16%｜中际 −12.28% 位6%",
+   why:"科技链已经连续两天崩塌。<b>英伟达 11/17 盘后财报是判决日</b>，在此之前成长端大概率还要震"},
+  {s:"off",act:"复盘：今天的两条判断都对了",px:"—",cond:"① 下午是杀跌不是反弹 ② 红利护盘到极致=风险",
+   why:"13:26 我写「创业板从 −2.89% 到 −4.37%、上证从 3620 到 3602.57（位89%→44%）、红利收在日内最高」—— 收盘全部兑现"},
+  {s:"off",act:"明天开盘前把条件单挂好",px:"—",cond:"已连续 3 次提醒",
+   why:"今天 1.018 触及 1.020 时，条件单在就在执行；不在，就只能靠你盯盘，而盯盘你做不到"}
+ ],
+ orders:[
+  {c:"159338 反弹自动卖出",px:">=1.040",q:"200 股",note:"反弹减仓区 1.040–1.045 → 剩 400 股 ≈ 40% 仓位"},
+  {c:"159338 破今日低点自动卖出",px:"<=1.018",q:"100 股",note:"跌破今日最低 = 新一轮下杀 → 剩 500 股"},
+  {c:"159338 新硬死线自动卖出",px:"<=1.008",q:"200 股",note:"硬死线从 1.020 下移到 1.008（噪音之外）→ 剩 300 股"},
+  {c:"159338 反弹第二档（可选）",px:">=1.055",q:"100 股",note:"MA5 上方，回到 11/06 水平"},
+  {c:"159338 自动买入",px:"—",q:"—",note:"⛔ 不设。加仓三条件：换手 21.64% ✗、权重健康度 ✗（中际位6%）、守住 1.040 ✗"},
+  {c:"场外定投（不是条件单，是定投计划）",px:"022610",q:"按周/按月固定金额",note:"1 元起投、0 申购费、满 7 天 0 赎回费 ← 这才是摊低成本的工具"},
+  {c:"🔴 必须明天开盘完成",px:"—",q:"设条件单",note:"已漏执行 3 次：11/11 的 1.065、11/13 的死线破位、11/16 的 1.018 触线"},
+  {c:"事件提醒",px:"11/17 盘后",q:"—",note:"英伟达 Q3 财报 = 本周判决日；APEC 深圳 11/17-18"}
+ ],
+ lv159:[["死线（已破 2 日）","1.040","<b>11/13 低 1.034、11/16 低 1.022</b> → 今天减 100 股","bad"],["硬死线（逼近）","1.020","<b>今日最低 1.022，只差 0.002</b>","bad"],["反弹减仓区（新）","1.040–1.045","不再等 1.055 —— 环境更差，离得远","warn"],["今日区间","1.022–1.033","收 1.031，区间位 <b>82%</b>（昨 14%）→ 低位有承接","gd"],["量能","换手 13.58%（半日）","昨全天 21.33% → <b>明显缩量，抛压在衰减</b>","gd"],["均线","MA5 1.0518｜MA10 1.0525","双线均已跌破，仍在下方","bad"],["估值","PE ≈15.4，分位 ≈40%","已离开极低估区","warn"],["加仓三条件","①✓ ②✗ ③✗","中际位20%+新易盛位27% → 前十大 2 只贴地","bad"]],
+ lv513:[["状态","0.949（+1.61%）","<b>反弹，区间位 87%</b>；今日高 0.951","gd"],["减半区","0.950–0.960","<b>持有者在此减半</b>（反弹是减仓窗口）","warn"],["止损","0.930","硬止损，未破","bad"],["位置","MA5 0.984 之下","仍在 0.975 止损线之下 → 修复不是反转","bad"],["驱动","港股回购扩容","恒指 +0.88%、腾讯 +1.97%、美团 +3.37%｜不是英伟达","ac"],["必查","溢价率","跨境 ETF，折溢价随情绪波动 >2% 不追","ac"],["风险","11/17 英伟达财报","中概互联网也在 AI 链上","bad"]]
+};
+const KEYLV=[
+ {n:"新硬死线",px:1.008,t:"bad",note:"从 1.020 下移·噪音之外"},
+ {n:"今日低点",px:1.018,t:"bad",note:"破了=新低"},
+ {n:"死线",px:1.040,t:"bad",note:"已破 2 天"},
+ {n:"反弹减仓区",px:1.045,t:"wn",note:"涨到这卖 200"}
+];
+const GLOSS=[
+ ["区间位","今天成交价在最高价和最低价之间靠哪头。0% = 贴着今天最低，100% = 贴着今天最高","159338 今天 1.022~1.033，现价 1.026 → 区间位 36%"],
+ ["均价线","今天所有成交的平均价格。价格在线上 = 买的人更着急；在线下 = 卖的人更着急","分时图上那条黄线"],
+ ["换手率","今天有百分之多少的筹码换了手。换手越高说明分歧越大、方向越乱","159338 今天 16.84%，昨天 21.33%，前天 13.66%"],
+ ["死线","你自己定的「跌到这儿就撤」的线。不是分析师说的，是你的纪律","159338 死线 1.040，已经被破 2 天"],
+ ["硬死线","最后一道防线，破了必须走，不看理由、不看外围","1.020，现价 1.026，只差 0.006"],
+ ["反弹减仓区","涨到这一档就主动卖一部分。这是「兑现」，不是「被迫砍」","1.040–1.045，卖 200 股"],
+ ["加仓区","只在三条条件全中时才买。少一条都不买","今天：换手 ✓、权重健康度 ✗、守住死线 ✗ → 不加"],
+ ["委比 / 委差","现在排队买的人比排队卖的人多多少。正 = 有人接，负 = 没人接","买一 62.5 万 vs 卖一 3.5 万 → 委比 +89%"],
+ ["背离","价在涨，但份额在减 = 有人借上涨派发","ETF 最容易看：每日公布份额"],
+ ["高低切换","钱从一个风格搬到另一个。切过去的是高位，切过来的才是低位","今天：从光模块（高位）切到银行（低位）"],
+ ["破位","跌破关键支撑而且没收回。支撑 = 前低 + 均线 + 整数关，取最近的","159338 跌破 1.040 且收在 1.037 → 破位"],
+ ["净申购 / 份额","ETF 最独特的指标。份额增加 = 有人在净买入真金白银","每天查一次 159338 份额，比看涨幅有用"],
+ ["T+0 / T+1","T+1 = 今天买明天才能卖；T+0 = 当天可卖","场内 A 股股票型 ETF 是 T+1；跨境/债券/黄金/货币是 T+0"],
+ ["折溢价","场内价 − 净值。大于 0 叫溢价（你多付钱），小于 0 叫折价（你少付钱）","跨境 ETF 溢价能到 2%+，>2% 别追"],
+ ["工具仓 vs 底仓","工具仓 = 波段用，涨了就落袋；底仓 = 长期 Beta，等级别修复","你的 700 股：400 工具 + 300 底仓"],
+ ["倒 T","先卖后买，同一天在更低价买回来","A 股需要本来就有底仓（你有）"],
+ ["摊薄成本","只有「买入」才会改成本价，「卖出」不会","你 700@1.0603，卖 100 后仍是 600@1.0603"],
+ ["场外联接 / 定投","场外 = 不在交易所买卖，1 元起投、可定投、不用择时","022610（0 申购费、满 7 天 0 赎回费）= 摊成本的正确工具"],
+ ["加仓三条件","换手率<18% + 权重健康度转好 + 守住死线，三条全中才买","今天只成立 1 条 → 不加"],
+ ["权重健康度","A500 前十大权重里，有几只跌得很难看","中际位 10% + 新易盛位 18% + 工业富联位 2% → 3 只贴地"],
+ ["退潮","题材五段论的第 5 段。最直接的信号：前期龙头开始跌停","11/11 跌停 0 家 → 11/13 跌停 33 家"],
+ ["日内强势方向 = 卖点","弱势轮动市里，当天最强的方向是别人今天买的，你明天要卖","今天最强的是银行 ETF（+1.34%，创新高）"],
+ ["低吸点","弱势但有支撑和轮动预期的方向","159338 在 1.022 附近 —— 但我们要求三条件全中才买"],
+ ["传闻级催化","没拿到官方文件的消息。涨得快，回吐也更快","FCC「松动」传闻 → 11/11 暴涨 → 11/13、11/16 连杀"],
+ ["CMSI","市场情绪指标。30 以下叫「冰点」，70 以上叫「过热」","今天 29.91 = 冰点"],
+ ["赔率 / 期望值","赚的概率 × 赚的幅度，对比亏的概率 × 亏的幅度","加仓方案只在涨到 1.037 以上才划算"],
+ ["条件单","把「跌到某价就卖」写进券商 App，到价自动下单","这是「没时间盯盘」的唯一解法"],
+ ["仓位上限","单一个标的最多占总资产多少","我们写死 ≤50%；你现在 69.8% = 超了"],
+ ["死线 vs 反弹减仓区","一个防守、一个进攻。破了死线先保命，涨到减仓区才兑现","1.020 硬死线 / 1.040–1.045 反弹减仓区"]
+];
+const $=s=>document.querySelector(s),$$=s=>[...document.querySelectorAll(s)];
+const f2=n=>n.toFixed(2),f3=n=>n.toFixed(3),cls=v=>v>0?'up':(v<0?'dn':'mu');
+const save=(k,v)=>{try{localStorage.setItem('dash_'+k,v)}catch(e){}};
+const load=k=>{try{return localStorage.getItem('dash_'+k)}catch(e){return null}};
+function calc(){let mv=0,pl=0;D.pos.forEach(p=>{mv+=p.qty*p.px;pl+=(p.px-p.cost)*p.qty;});
+ const ta=D.tot+pl;return{mv,pl,ta,pos:mv/ta*100,cash:ta-mv};}
+function marketClock(){
+ const n=new Date(),d=n.getDay(),h=n.getHours(),m=n.getMinutes(),t=h*60+m;
+ if(d===0||d===6)return['休市（周末）','b-nt'];
+ if(t>=555&&t<570)return['集合竞价 9:15–9:25','b-wn'];
+ if(t>=570&&t<690)return['盘中 9:30–11:30','b-ok'];
+ if(t>=690&&t<780)return['午休 11:30–13:00','b-nt'];
+ if(t>=780&&t<885)return['盘中 13:00–14:57','b-ok'];
+ if(t>=885&&t<=900)return['收盘竞价 14:57–15:00','b-wn'];
+ if(t<555)return['盘前','b-ac'];
+ return['盘后','b-nt'];
+}
+function applyFolds(){
+ var grid=document.querySelector('#t-today .grid.g3');
+ if(grid){
+  var d=document.createElement('details');d.className='fold';
+  d.innerHTML='<summary>📎 详细分析 · 减还是加 / 下午盯盘 / 今日全景 / 本周日历<span class="fs">4 块 · 点开</span></summary>';
+  var fb=document.createElement('div');fb.className='fb';
+  grid.parentNode.insertBefore(d,grid);d.appendChild(fb);
+  while(grid.firstChild)fb.appendChild(grid.firstChild);
+  grid.parentNode.removeChild(grid);
+ }
+ var pro=$('#t-ref .card h3');
+ if(pro&&pro.textContent.indexOf('术语速查（专业定义）')===0){
+  var pc=pro.closest('.card');
+  if(pc&&!pc.closest('details')){
+   var dp=document.createElement('details');dp.className='fold';
+   dp.innerHTML='<summary>📖 术语速查（专业定义）<span class="fs">进阶 · 点开</span></summary>';
+   var pf=document.createElement('div');pf.className='fb';
+   pc.parentNode.insertBefore(dp,pc);dp.appendChild(pf);pf.appendChild(pc);
+  }
+ }
+ var ov=$('#overnight');
+ if(ov&&!ov.closest('details')){
+  var d2=document.createElement('details');d2.className='fold';
+  d2.innerHTML='<summary>📜 第三方框架交叉验证 · 何志坚《弱势轮动，怎么玩？》<span class="fs">7 条 · 点开</span></summary>';
+  var fb2=document.createElement('div');fb2.className='fb';
+  ov.parentNode.insertBefore(d2,ov);d2.appendChild(fb2);fb2.appendChild(ov);
+  ov.style.margin='0';ov.style.border='none';ov.style.background='rgba(248,81,73,.05)';
+ }
+}
+function distHTML(px){
+ return KEYLV.map(function(k){
+  // d>0 = 这条线在现价上方（对 bad 类=已经跌破；对 wn 类=还没涨到）
+  var d=(k.px-px)/px*100,w=Math.min(100,Math.abs(d)/0.03*100);
+  var broke=(k.t==='bad'&&d>0);
+  var col=broke?'var(--bad)':(k.t==='bad'?'var(--wn)':'var(--gd)');
+  var txt=broke?('已破 '+f2(d)+'%'):(d<0?('还差 '+f2(Math.abs(d))+'%'):('还差 +'+f2(d)+'%'));
+  return '<div class="dist-row"><span class="dl">'+k.n+' '+f3(k.px)+'</span>'
+   +'<span class="dp" style="color:'+col+'">'+txt+'</span>'
+   +'<i class="dbar"><b style="width:'+w+'%;background:'+col+'"></b></i></div>';
+ }).join('');
+}
+function renderHero(){
+ var c=calc(),p=D.px.sz159338,q=D.pos[0];
+ var el=$('#hero_price');if(!el)return;
+ el.textContent=f3(p.px);el.className='big mono '+cls(p.chg);
+ var e2=$('#hero_env');e2.textContent=D.env;e2.className='badge '+D.envType;
+ $('#hero_clock').textContent=marketClock()[0];
+ $('#hero_upd').textContent='更新于 '+(window.lastUpd||'—');
+ $('#hero_qty').textContent=q.qty+' 股';
+ $('#hero_cost').textContent=f3(q.cost);
+ var pl=(q.px-q.cost)*q.qty;
+ var pe=$('#hero_pl');pe.textContent=(pl>=0?'+':'')+f2(pl)+' 元';pe.className=cls(pl);
+ var po=$('#hero_pos');po.textContent=f2(c.pos)+'%';po.className=c.pos>60?'bad':(c.pos>50?'wn':'gd');
+ $('#hero_dist').innerHTML=distHTML(p.px);
+ var act=D.todos.filter(function(t){return t.s==='on';}).slice(0,3);
+ $('#hero_todo').innerHTML=act.length?act.map(function(t){return '<li>'+t.act+'</li>';}).join('')
+  :'<li><b class="gd">今天没有必须动手的事 —— 按规则不动</b></li>';
+}
+function renderWatch(){
+ var c=calc(),p=D.px.sz159338,q=D.pos[0];
+ var w=$('#watchmode');if(!w||!w.classList.contains('on'))return;
+ var pl=(q.px-q.cost)*q.qty;
+ var pe=$('#w_price');pe.textContent=f3(p.px);pe.className='w-big '+cls(p.chg);
+ var ce=$('#w_chg');ce.textContent=(p.chg>0?'+':'')+p.chg+'%';ce.className='w-chg '+cls(p.chg);
+ $('#w_pos').innerHTML='持仓 <b class="mono">'+q.qty+'</b> 股 @ <b class="mono">'+f3(q.cost)+'</b>　｜　浮亏 <b class="mono" style="color:'+(pl>=0?'var(--up)':'var(--dn)')+'">'+f2(pl)+' 元</b>　｜　仓位 <b class="mono">'+f2(c.pos)+'%</b>';
+ $('#w_dist').innerHTML=distHTML(p.px);
+ $('#w_reads').innerHTML=[['区间位',p.pos+'%'],['换手率',p.turn+'%'],['今日最高',f3(p.hi)],['今日最低',f3(p.lo)],
+   ['仓位',f2(c.pos)+'%'],['现金',f2(c.cash)+' 元']]
+  .map(function(r){return '<div class="rd"><div class="k">'+r[0]+'</div><div class="v">'+r[1]+'</div></div>';}).join('');
+ $('#w_act').innerHTML=D.todos.filter(function(t){return t.s==='on';})
+  .map(function(t){return '<li>'+t.act+'</li>';}).join('');
+ $('#w_upd').textContent='更新于 '+(window.lastUpd||'—');
+}
+var wTimer=null;
+function openWatch(){
+ var w=$('#watchmode');w.classList.add('on');document.body.style.overflow='hidden';
+ renderWatch();clearInterval(wTimer);
+ wTimer=setInterval(function(){if(w.classList.contains('on'))watchRefresh();},30000);
+}
+function closeWatch(){
+ var w=$('#watchmode');w.classList.remove('on');document.body.style.overflow='';clearInterval(wTimer);
+}
+function watchRefresh(btn){refresh(btn||{textContent:''});}
+function renderGloss(){
+ var q=($('#gloss_q')&&$('#gloss_q').value||'').trim().toLowerCase();
+ var list=GLOSS.filter(function(g){
+  if(!q)return true;
+  return (g[0]+g[1]+g[2]).toLowerCase().indexOf(q)>=0;
+ });
+ $('#gloss_n').textContent=list.length+' 条';
+ $('#glossbody').innerHTML=list.length?list.map(function(g){
+  return '<details class="gcard"><summary><b>'+g[0]+'</b><span>'+g[1]+'</span></summary><div class="g3">'+g[2]+'</div></details>';
+ }).join(''):'<div class="mu" style="padding:12px 0">没找到这个词。换个说法试试，比如「死线」「委比」「区间位」。</div>';
+}
+function renderHeader(){
+ const c=calc(),ck=marketClock();
+ $('#kpis').innerHTML='<div class="kpi"><div class="k">环境</div><div class="v"><span class="badge '+D.envType+'" style="font-size:11px;padding:2px 8px">'+D.env+'</span></div></div>'
+ +'<div class="kpi"><div class="k">总资产</div><div class="v mono">'+f2(c.ta)+'</div></div>'
+ +'<div class="kpi"><div class="k">仓位</div><div class="v mono">'+f2(c.pos)+'%</div></div>'
+ +'<div class="kpi"><div class="k">浮盈亏</div><div class="v mono '+cls(c.pl)+'">'+(c.pl>=0?'+':'')+f2(c.pl)+'</div></div>'
+ +'<div class="kpi"><div class="k">今日需动手</div><div class="v mono"><span class="wn">'+D.todos.filter(function(t){return t.s!=='off'}).length+'</span> <span class="mu" style="font-size:12px">/ '+D.todos.length+' 条</span></div></div>';
+ var he=$('#hl_env');if(he){he.textContent=D.env;he.className='badge '+D.envType;}
+ var hc=$('#hl_clock');if(hc){hc.textContent=ck[0];hc.className='badge '+ck[1];}
+}
+function renderHeadline(){
+ var L=[
+ ['① 今天发生了什么','需求塌方，但出口很强',
+  '10 月数据是「供需错配」的极端版本：<b class="dn">社零 +0.4%</b>（9月 +1.1%）、<b class="dn">1-10月固投 −8.1%</b>、地产投资 <b class="dn">−21.6%</b>｜同时 <b class="up">出口 +31.2%</b>、<b class="wn">PPI +5.7%</b>（油气+35%、煤炭+36.6% 拉动）｜统计局原话「<b>供强需弱仍较突出</b>」'],
+ ['② 为什么这样','上下游在抢利润，两头被挤',
+  '今天所有涨跌只有一个原因：<b>上下游利润再分配</b>。PPI 由上游能源拉起、需求端塌方 → 上游（煤炭/油气/银行）受益，<b class="dn">中游制造（电子/元件/光模块）被两头挤压</b> → 中际 −7.70% 创年内新低、工行建行创历史新高。这也是 159338 跑输的原因：<b>A500 里电子 19.75% + 半导体 11.72% ≈ 31.5% 权重正处在中游被挤压的位置</b>。'],
+ ['③ 严重吗','不是崩盘，是缩量杀跌',
+  '上证 3620 <b>区间位 89%</b>（盘中失守 3600 后拉回）、跌停从 33 降到 <b>14</b>、<b>半日缩量 788 亿</b>、CMSI 29.91 冰点｜但创业板 −2.89% 位17%、科创50 −3.61%，<b class="dn">两融余额减少逾百亿</b> → 缩量杀跌 + 权重护盘，恐慌减轻但没有增量。'],
+ ['④ 对我什么影响','死线破第 2 天，浮亏在扩大',
+  '<b class="bad">159338 1.026，最低 1.022，距硬死线 1.020 只差 0.006</b>。700 股 @1.0603 → 浮亏 <b class="dn">−22.1 元</b>，仓位 <b class="bad">69.8%</b>（超我们写死的 ≤50% 上限）。但盘口有一条好消息：<b class="gd">委比 +89%</b>（买一 62.5 万 vs 卖一 3.5 万）→ <b>价↓ + 委差↑ = 有人接</b>，可能是被动护盘。'],
+ ['⑤ 我该做什么','先减 100 股，再挂 3 条条件单',
+  '<b>手动：减 100 股 @1.026</b> → 600 股 @1.0603（<b>成本价不变</b>），仓位 59.9%｜<b>条件单：≥1.040 卖 200｜≤1.022 卖 100｜≤1.020 卖 100</b>｜<b>513050 无持仓，相关条件单全删</b>｜<b>不加仓</b>｜减出的钱走 <b>场外 A500 联接 022610 定投</b>。'],
+ ['⑥ 有什么风险','红利抱团到极致，是当前最大雷',
+  '银行/红利今天创历史新高、四大行总市值破 10 万亿 = <b class="bad">拥挤度极值</b>。同时 30 年国债期货创新低说明钱是从债市搬来的 —— <b>无处可去的钱，一旦有别的去处会跑得很快</b>。11/17 盘后英伟达财报是本周判决日，<b>财报前不留仓</b>。']
+ ];
+ $('#hl_list').innerHTML=L.map(function(x){
+  return '<li><details class="fold"><summary>'+x[0]+'<span class="fs">'+x[1]+'</span></summary><div class="fb">'+x[2]+'</div></details></li>';
+ }).join('');
+}
+function renderPos(){
+ const c=calc();
+ $('#posbody').innerHTML=D.pos.map(function(p,i){
+  const pl=(p.px-p.cost)*p.qty;
+  return '<tr><td><b>'+p.n+'</b></td><td class="mu" style="font-size:11.5px">'+p.role+'</td>'
+  +'<td class="num"><input type="number" id="q'+i+'" value="'+p.qty+'" min="0" step="100" oninput="upd('+i+',\'qty\',this.value)"></td>'
+  +'<td class="num"><input type="number" id="c'+i+'" value="'+p.cost+'" step="0.001" oninput="upd('+i+',\'cost\',this.value)"></td>'
+  +'<td class="num '+cls(p.px)+'">'+f3(p.px)+'</td>'
+  +'<td class="num '+cls(pl)+'">'+(p.qty===0?'<span class="dim">—</span>':(pl>=0?'+':'')+f2(pl))+'</td>'
+  +'<td class="num">'+f2(p.qty*p.px)+'</td></tr>';}).join('');
+ $('#poscards').innerHTML=D.pos.map(function(p,i){
+  const pl=(p.px-p.cost)*p.qty;
+  return '<div class="pcard">'
+  +'<div class="pt"><span>'+p.n+'</span><span class="badge '+(p.role.indexOf('T+0')>=0?'b-ac':'b-ok')+'" style="font-size:10px;padding:1px 7px">'+p.role+'</span></div>'
+  +'<div class="pr mono">'+p.code+' · 均价 '+f3(p.cost)+' · 现价 <span class="'+cls(p.px)+'">'+f3(p.px)+'</span></div>'
+  +'<div class="pgrid">'
+  +'<div class="pf"><div class="k">持仓</div><div class="v">'+p.qty+' 份</div></div>'
+  +'<div class="pf"><div class="k">浮盈</div><div class="v '+cls(pl)+'">'+(p.qty===0?'—':((pl>=0?'+':'')+f2(pl)))+'</div></div>'
+  +'<div class="pf"><div class="k">市值</div><div class="v">'+f2(p.qty*p.px)+'</div></div>'
+  +'<div class="pf"><div class="k">仓位占比</div><div class="v">'+f2(p.qty*p.px/c.ta*100)+'%</div></div></div>'
+  +'<div class="pedit"><span class="mu" style="font-size:11px">数量</span><input type="number" id="mq'+i+'" value="'+p.qty+'" min="0" step="100" oninput="upd('+i+',\'qty\',this.value)">'
+  +'<span class="mu" style="font-size:11px">成本</span><input type="number" id="mc'+i+'" value="'+p.cost+'" step="0.001" oninput="upd('+i+',\'cost\',this.value)"></div>'
+  +'<div class="pchips">'
+  +(p.qty>0?'<button class="btn sm ok" onclick="setQty('+i+','+(p.qty-100)+')">−100</button>'
+  +'<button class="btn sm wn" onclick="setQty('+i+','+Math.max(0,p.qty-200)+')">−200</button>'
+  +'<button class="btn sm" onclick="setQty('+i+',0)">清仓</button>':'')
+  +'<button class="btn sm" onclick="setQty('+i+','+(p.qty+100)+')">+100</button></div></div>';}).join('');
+ $('#sumpl').innerHTML='<span class="'+cls(c.pl)+'">'+(c.pl>=0?'+':'')+f2(c.pl)+'</span>';
+ $('#summv').textContent=f2(c.mv);
+ $('#sumta').textContent=f2(c.ta);$('#sumcash').textContent=f2(c.cash);$('#sumpos').textContent=f2(c.pos)+'%';
+}
+function setQty(i,v){D.pos[i].qty=Math.max(0,Math.round(v/100)*100);save('pos',JSON.stringify(D.pos));renderPos();renderHeader();}
+function upd(i,k,v){D.pos[i][k]=(k==='qty')?(parseInt(v)||0):(parseFloat(v)||0);save('pos',JSON.stringify(D.pos));renderPos();renderHeader();}
+function renderTodos(){
+ $('#todos').innerHTML=D.todos.map(function(t){
+  var open=t.s==='on'?' open':'';
+  return '<details class="fold todo-fold"'+open+'><summary>'
+   +'<span class="dot '+(t.s==='on'?'on':(t.s==='wait'?'wait':'off'))+'"></span>'
+   +'<span style="flex:1">'+t.act+'</span><span class="px">'+t.px+'</span></summary>'
+   +'<div class="fb"><div class="cond">'+t.cond+'</div><div class="why">'+t.why+'</div></div></details>';
+ }).join('');
+}
+function renderLayers(){
+ $('#layers').innerHTML=D.layers.map(function(L){
+  return '<div class="card '+L.cls+'"><h3>'+L.n+'</h3><div class="mu" style="font-size:11.5px;margin-bottom:8px">'+L.q+'</div>'
+   +'<details class="fold" style="margin:0 0 8px"><summary>📋 看读数（'+L.rows.length+' 条）</summary><div class="fb" style="padding:9px 0 0">'
+   +L.rows.map(function(r){return '<div class="row"><span class="lab">'+r[0]+'</span><span class="val">'+r[1]+'</span></div>';}).join('')
+   +'</div></details>'
+   +'<div class="foot"><span class="badge '+L.vt+'" style="font-size:10.5px;padding:2px 7px">'+L.v+'</span><br><br>'+L.a+'</div></div>';
+ }).join('');
+}
+function renderLevels(){
+ const mk=function(arr){return arr.map(function(r){return '<div class="row"><span class="lab">'+r[0]+'</span><span class="val"><b class="'+(r[3]==='dim'?'dim':r[3]==='good'?'gd':r[3]==='warn'?'wn':'bad')+'">'+r[1]+'</b><div style="font-size:11px;color:var(--mu);font-weight:400;margin-top:2px">'+r[2]+'</div></span></div>';}).join('');};
+ $('#levels159').innerHTML=mk(D.lv159);$('#levels513').innerHTML=mk(D.lv513);
+}
+function renderOrders(){
+ const done=JSON.parse(load('orders')||'[]');
+ $('#ord_n').textContent=done.length+'/'+D.orders.length+' 已设置';
+ $('#orders').innerHTML=D.orders.map(function(o,i){return '<label class="ck '+(done.indexOf(i)>=0?'done':'')+'">'
+  +'<input type="checkbox" '+(done.indexOf(i)>=0?'checked':'')+' onchange="tog('+i+',this.checked)">'
+  +'<span style="flex:1"><b>'+o.c+'</b> <span class="px">'+o.px+'</span> <span class="mu">· '+o.q+'</span>'
+  +'<div class="dim" style="font-size:11.5px">'+o.note+'</div></span></label>';}).join('');
+}
+function tog(i,v){let d=JSON.parse(load('orders')||'[]');
+ if(v){if(d.indexOf(i)<0)d.push(i);}else d=d.filter(function(x){return x!==i;});save('orders',JSON.stringify(d));renderOrders();}
+function renderOvernight(){
+ $('#overnight').innerHTML='<div class="t">📜 第三方框架交叉验证 · 何志坚《弱势轮动，怎么玩？》（11/16 11:10）</div><ul>'
+ +'<li><b>原文三句核心：</b>① <b>「现在盘面轮动为主，日内强势的方向是卖点」</b>② <b>「弱势但有支撑和轮动预期的方向，是低吸博弈点」</b>③ <b>「这种精细化的博弈很难做，没时间盯盘最好还是等企稳」</b>｜另外：<b>「当退潮来的时候，走弱后反抽就是离场点」「高位的思路，边打边撤」「低位的补涨，聚焦刚出来的核心」「大势不好的时候多做多错」</b></li>'
+ +'<li><b>和我们一致的 6 条（独立作者同构 = 框架可靠）：</b>日内强势=卖点 ≡ 反弹减仓区｜退潮期反抽=离场点 ≡ 死线破了就走｜高位抱团不好 ≡ 红利拥挤度是尾部风险｜前期龙头跌停=最直接信号 ≡ 情绪四层的宽度层｜大势不好不做多 ≡ 退潮期不碰算力链｜没时间盯盘就等 ≡ 条件单，不靠盯盘</li>'
+ +'<li><b>我们要更严的一条：</b>他说「弱势但<b>有支撑</b>的方向是低吸点」——单看支撑就够；<b>我们的加仓三条件是「换手&lt;18% + 权重健康度转好 + 守住死线」三条全中</b>。今天只成立 1 条（中际/新易盛/工业富联三只贴地）→ <b>不低吸</b>。小账户 + 100 股整手 + 无法盯盘，门槛必须比大资金高</li>'
+ +'<li><b>他给的是时点、我们给的是概率：</b>他说「<b>反弹可能就在这1-2天，今天午后或者明天，要看大主力护盘的情况</b>」——这是主观时点判断。我们给的是「偏强45%/震荡35%/偏弱20%」，并且已经用 13:01 的实际走弱把概率往偏弱调。<b>时点会错，概率会收敛</b></li>'
+ +'<li><b>他补上了我们缺的一环：FCC 传闻。</b>10月初美国 FCC 拟推 Covered List（要求销美光模块 65% BOM 来自美国公司）→ 光通信估值持续承压 → <b>11/11「限制松动」传闻</b> → 光通信链集体反攻（源杰 20cm 涨停、中际 +15.07%、天孚 +13.96%、光芯片指数 +8.93%、CPO +4.75%）→ <b>11/13 中际 −8.39%、天孚 −10.94%</b> → <b>11/16 中际 −8.39% 位10%、工业富联 −7.53% 位2%</b>。<b>结论：11/11 那波是「传闻级情绪反抽」，不是业绩驱动的趋势。传闻驱动的反弹，兑现更快、回吐更狠。</b></li>'
+ +'<li><b>他的图（科创综指 000680，11:10 快照）：</b>1459.88 <b>−3.73%</b>，最低 1452.11，红框标注底部横盘震荡区；三市成交额 7534 亿、预估全天 1.55 万亿、较上日同时 −573 亿；<b>委比 −17.52%、委差 −102.33 万、量比 1.52、主力净流入 −1169 亿</b>｜结论：<b class="bad">区间震荡格局 + 退潮期</b></li>'
+ +'<li><b>落到今天：</b>① 银行/红利是今天的<b class="bad">日内强势方向</b> → 按他的框架是<b>卖点</b>，不是加仓标的；② 159338 属「弱势接近支撑」但他明说<b>没时间盯盘就别做</b> → 所以是<b>减仓</b>不是低吸；③ <b>今天最该做的一件事仍是设条件单</b>——这是「没时间盯盘」的唯一解法</li></ul>';
+ const p=D.px['sz159338'];
+ const w=$('#w_avg'); if(w) w.innerHTML='区间位 <b>'+p.pos+'%</b> ｜ 换手 <b>'+p.turn+'%</b> ｜ 高 '+f3(p.hi)+' 低 '+f3(p.lo);
+}
+function calcOut(){
+ const i=parseInt($('#cl_t').value),p=D.pos[i],t=parseFloat($('#cl_px').value);
+ $('#cl_now').innerHTML=f3(p.px);
+ const o=$('#cl_out');
+ if(!t||!p.qty){o.className='out nt';o.textContent=p.qty?'目标价无效':p.n+' 当前持仓为 0，先在上面填数量';return;}
+ const diff=t-p.px,pct=diff/p.px*100;
+ if(Math.abs(diff)<0.0015){o.className='out nt';o.textContent='目标价 ≈ 现价，无需操作';return;}
+ const n=Math.floor(Math.abs(diff)/p.px*p.qty/100)*100;
+ if(diff>0){
+  o.className='out good';
+  o.innerHTML='目标 <b class="mono">'+f3(t)+'</b> 高于现价 '+f3(p.px)+'（<b>+'+f2(pct)+'%</b>）<br>→ 涨到该价位可<b>减 '+(n||100)+' 股</b>，回笼约 <b>'+f2(Math.min(n||100,p.qty)*t)+' 元</b><br><span style="font-weight:400;opacity:.85">减完后剩余 '+(p.qty-(n||100))+' 股，成本约 '+f3((p.qty*p.cost-(n||100)*p.px)/(p.qty-(n||100)||1))+'</span>';
+ }else{
+  o.className='out bad';
+  o.innerHTML='目标 <b class="mono">'+f3(t)+'</b> 低于现价 '+f3(p.px)+'（<b class="dn">'+f2(pct)+'%</b>）<br>→ 跌到该价位可<b>减 '+(n||100)+' 股</b>，或<b>补 '+Math.max(100,Math.ceil((p.px-t)/p.px*p.qty/100)*100)+' 股</b>（摊薄成本）<br><span style="font-weight:400;opacity:.85">⚠️ 减仓要触发「破位+30分钟收不回」；补仓要同时满足三条条件</span>';
+ }
+}
+function prOut(){
+ const v=parseFloat($('#pr_val').value),o=$('#pr_out');
+ if(isNaN(v)){o.className='out nt';o.textContent='填入数字后自动判定';return;}
+ if(v<0){o.className='out bad';o.innerHTML='<b>折价 '+f2(Math.abs(v))+'%</b> —— 场内价比净值低，<b>对买方是好事</b>，可以买。';return;}
+ if(v<1){o.className='out good';o.innerHTML='<b>溢价 '+f2(v)+'%</b> —— 安全区（&lt;1%）。<b>可以买 100 股</b>（约 '+f2(100*1.009)+' 元）。<br>提醒：溢价会随情绪回落，T+0 可当天纠错。';return;}
+ if(v<2){o.className='out warn';o.innerHTML='<b>溢价 '+f2(v)+'%</b> —— <b>谨慎</b>。你比净值多付 '+f2(v)+'%，溢价归零就直接亏 '+f2(v)+'%。<br>建议：<b>等溢价回到 &lt;1% 再买</b>，或只买 100 股试仓。';return;}
+ o.className='out bad';o.innerHTML='<b>🚨 溢价 '+f2(v)+'%</b> —— <b>不要买</b>。<br>你在为溢价付 '+f2(v)+'% 的钱，等于一开始就亏 '+f2(v)+'%。<br>处理：等溢价回落，或改买 159920 恒生ETF（溢价通常更低）。';
+}
+function copyText(txt,btn){
+ const done=function(){const o=btn.textContent;btn.textContent='✓ 已复制';setTimeout(function(){btn.textContent=o;},1800);};
+ if(navigator.clipboard&&navigator.clipboard.writeText){navigator.clipboard.writeText(txt).then(done).catch(function(){fallback(txt);done();});}
+ else{fallback(txt);done();}
+}
+function fallback(txt){const ta=document.createElement('textarea');ta.value=txt;ta.style.position='fixed';ta.style.opacity='0';
+ document.body.appendChild(ta);ta.select();try{document.execCommand('copy')}catch(e){}document.body.removeChild(ta);}
+function copyTodo(btn){
+ var c=calc();
+ var act=D.todos.filter(function(t){return t.s!=='off';});
+ var txt='【今日待办 · '+ts()+'】\n环境：'+D.env+'｜总资产 '+f2(c.ta)+'｜仓位 '+f2(c.pos)+'%\n'+'【持仓】159338 '+D.pos[0].qty+' 股 @'+f3(D.pos[0].cost)+'｜现价 '+f3(D.px.sz159338.px)+'\n\n';
+ act.forEach(function(t,i){txt+=(i+1)+'. '+t.act+'   ['+t.px+']\n   条件：'+t.cond+'\n';});
+ txt+='\n【条件单】\n'+D.orders.filter(function(o){return o.px!=='—';}).map(function(o,i){
+  return (i+1)+'. '+o.c+' | 触发价 '+o.px+' | '+o.q;}).join('\n');
+ copyText(txt,btn||{textContent:''});
+}
+function copyOrders(btn){
+ var txt='【条件单清单 · '+ts()+'】\n'+D.orders.filter(function(o){return o.px!=='—';}).map(function(o,i){
+  return (i+1)+'. '+o.c+' | 触发价 '+o.px+' | '+o.q+' | '+o.note;}).join('\n');
+ copyText(txt,btn||{textContent:''});
+}
+function copyHoldings(btn){
+ var c=calc();
+ var txt='【持仓与条件单 · '+ts()+'】\n总资产 '+f2(c.ta)+'｜仓位 '+f2(c.pos)+'%｜浮盈亏 '+f2(c.pl)+'\n\n【持仓】\n';
+ D.pos.forEach(function(p){var pl=(p.px-p.cost)*p.qty;
+  txt+='· '+p.n+'：'+p.qty+' 股 @'+f3(p.cost)+'｜现价 '+f3(p.px)+'｜浮盈亏 '+(pl>=0?'+':'')+f2(pl)+'\n';});
+ txt+='\n【条件单】\n'+D.orders.filter(function(o){return o.px!=='—';}).map(function(o,i){
+  return (i+1)+'. '+o.c+' | 触发价 '+o.px+' | '+o.q+'\n   '+o.note;}).join('\n');
+ txt+='\n\n【今日动作】\n'+D.todos.filter(function(t){return t.s==='on';}).map(function(t,i){
+  return (i+1)+'. '+t.act+' ['+t.px+']';}).join('\n');
+ copyText(txt,btn||{textContent:''});
+}
+function ts(){var d=new Date();function p(x){return String(x).padStart(2,'0');}
+ return d.getFullYear()+'-'+p(d.getMonth()+1)+'-'+p(d.getDate())+'_'+p(d.getHours())+p(d.getMinutes());}
+function toast(msg,kind){
+ var t=$('#toast');
+ if(!t){t=document.createElement('div');t.id='toast';document.body.appendChild(t);}
+ t.textContent=msg;t.className='on'+(kind?' '+kind:'');
+ clearTimeout(t._t);t._t=setTimeout(function(){t.className='';},2200);
+}
+function dl(name,content,type){
+ try{
+  var pre=(type==='text/html'||type==='application/json')?'':'\ufeff';
+  var blob=new Blob([pre+content],{type:(type||'text/plain')+';charset=utf-8'});
+  var a=document.createElement('a');a.href=URL.createObjectURL(blob);a.download=name;
+  document.body.appendChild(a);a.click();
+  setTimeout(function(){URL.revokeObjectURL(a.href);a.remove();},800);
+  toast('已导出 '+name,'ok');
+ }catch(e){toast('导出失败：'+e.message,'bad');}
+}
+function b64e(s){return btoa(unescape(encodeURIComponent(s)));}
+function b64d(s){return decodeURIComponent(escape(atob(String(s).trim())));}
+function packObj(){return{v:2,t:ts(),d:load('r_daily')||'',w:load('r_week')||'',m:load('r_month')||'',
+ l:load('r_log')||'',o:JSON.parse(load('orders')||'[]'),p:D.pos,h:HIST};}
+function applyPack(o){
+ if(!o)return false;
+ save('r_daily',o.d||'');save('r_week',o.w||'');save('r_month',o.m||'');save('r_log',o.l||'');
+ save('orders',JSON.stringify(o.o||[]));
+ if(o.p&&o.p.length){D.pos=o.p;save('pos',JSON.stringify(D.pos));}
+ if(o.h){HIST=o.h;save('hist',JSON.stringify(HIST));}
+ return true;
+}
+function expMD(){
+ var c=calc();
+ var md='# 交易复盘 · '+ts()+'\n\n';
+ md+='> 环境：'+D.env+'｜总资产 '+f2(c.ta)+'｜仓位 '+f2(c.pos)+'%｜浮盈亏 '+f2(c.pl)+' 元\n\n';
+ md+='## ① 每日 5 分钟\n\n'+(load('r_daily')||'_（空）_')+'\n\n';
+ md+='## ② 每周 15 分钟\n\n'+(load('r_week')||'_（空）_')+'\n\n';
+ md+='## ③ 每月 30 分钟\n\n'+(load('r_month')||'_（空）_')+'\n\n';
+ md+='## ④ 交易日志\n\n'+(load('r_log')||'_（空）_')+'\n\n';
+ md+='## 当前持仓\n\n| 标的 | 数量 | 成本 | 现价 | 浮盈亏 |\n|---|---|---|---|---|\n';
+ D.pos.forEach(function(p){var pl=(p.px-p.cost)*p.qty;
+  md+='| '+p.n+' | '+p.qty+' | '+f3(p.cost)+' | '+f3(p.px)+' | '+(pl>=0?'+':'')+f2(pl)+' |\n';});
+ md+='\n## 条件单\n\n';
+ D.orders.forEach(function(o,i){md+=(i+1)+'. **'+o.c+'** ｜ 触发价 `'+o.px+'` ｜ '+o.q+'\n   - '+o.note+'\n';});
+ md+='\n## 已完成动作记录\n\n| 日期 | 动作 | 事前规则 | 结果 | 执行 |\n|---|---|---|---|---|\n';
+ document.querySelectorAll('#t-review tbody tr').forEach(function(tr){
+  var tds=tr.querySelectorAll('td');if(tds.length<5)return;
+  md+='| '+Array.prototype.map.call(tds,function(td){return td.textContent.trim().replace(/\|/g,'/');}).join(' | ')+' |\n';});
+ dl('交易复盘_'+ts()+'.md',md,'text/markdown');
+}
+function expCSV(){
+ var rows=[['类别','内容','导出时间']];
+ rows.push(['每日5分钟',load('r_daily')||'',ts()]);
+ rows.push(['每周15分钟',load('r_week')||'',ts()]);
+ rows.push(['每月30分钟',load('r_month')||'',ts()]);
+ rows.push(['交易日志',load('r_log')||'',ts()]);
+ D.pos.forEach(function(p){var pl=(p.px-p.cost)*p.qty;
+  rows.push(['持仓:'+p.n,p.qty+'股 @'+f3(p.cost)+' 现价'+f3(p.px)+' 浮盈亏'+f2(pl),ts()]);});
+ D.orders.forEach(function(o,i){rows.push(['条件单'+(i+1),o.c+' | '+o.px+' | '+o.q,ts()]);});
+ var csv=rows.map(function(r){return r.map(function(x){return '"'+String(x).replace(/"/g,'""')+'"';}).join(',');}).join('\n');
+ dl('交易复盘_'+ts()+'.csv',csv,'text/csv');
+}
+function expJSON(){
+ dl('交易复盘_'+ts()+'.json',JSON.stringify(packObj(),null,2),'application/json');
+}
+function expCode(){
+ var code=b64e(JSON.stringify(packObj()));
+ var box=$('#exp_code');if(box){box.value=code;box.scrollIntoView({block:'center'});}
+ copyText(code,{textContent:''});
+ toast('短码已生成并复制 —— 存到微信收藏或备忘录','ok');
+}
+function impCodeFromBox(){
+ var box=$('#exp_code');var code=box?box.value.trim():'';
+ if(!code){toast('先把短码粘进上面的框','bad');return;}
+ try{applyPack(JSON.parse(b64d(code)));toast('已恢复，正在刷新…','ok');setTimeout(function(){location.reload();},700);}
+ catch(e){toast('短码无效，粘贴完整了吗？','bad');}
+}
+function impFile(){var el=$('#imp_file');if(el)el.click();}
+function impFileHandle(el){
+ var f=el.files&&el.files[0];if(!f)return;
+ var r=new FileReader();
+ r.onload=function(){
+  var txt=String(r.result||'');var o=null;
+  try{o=JSON.parse(txt);}catch(e){}
+  if(!o&&txt.trim()){try{o=JSON.parse(b64d(txt));}catch(e2){}}
+  if(!o||o.v===undefined){toast('无法识别这个文件','bad');return;}
+  applyPack(o);toast('已恢复，正在刷新…','ok');setTimeout(function(){location.reload();},700);
+ };
+ r.readAsText(f);
+}
+function expSnapshot(){
+ var clone=document.documentElement.cloneNode(true);
+ var w=clone.querySelector('#watchmode');if(w)w.classList.remove('on');
+ var seedObj={};['r_daily','r_week','r_month','r_log','orders','pos','hist'].forEach(function(k){
+  var v=load(k);if(v!==null)seedObj['dash_'+k]=v;});
+ var seed='<script>(function(){try{var d='+JSON.stringify(seedObj).replace(/</g,'\\u003c')+';Object.keys(d).forEach(function(k){try{localStorage.setItem(k,d[k]);}catch(e){}});}catch(e){}})();<\/script>';
+ var body=clone.querySelector('body');if(body)body.insertAdjacentHTML('afterbegin',seed);
+ dl('看板快照_'+ts()+'.html','<!DOCTYPE html>\n'+clone.outerHTML,'text/html');
+}
+function expQuoteCSV(){
+ if(!HIST.length){toast('还没有行情历史，先点几次刷新','bad');return;}
+ var rows=[['时间','价格','涨跌幅%','区间位%','换手%','成交额亿','最高','最低']];
+ HIST.forEach(function(h){rows.push([h.t,h.px,h.chg,h.pos,h.turn,h.amt,h.hi,h.lo]);});
+ var csv=rows.map(function(r){return r.join(',');}).join('\n');
+ dl('行情历史_'+ts()+'.csv',csv,'text/csv');
+}
+function fixBall(){
+ try{
+  var b=document.getElementById('minimax-floating-ball');
+  var h=0;
+  if(b&&window.innerWidth<=860){
+   var r=b.getBoundingClientRect();
+   h=Math.max(0,Math.round(window.innerHeight-r.top+4));
+  }
+  document.documentElement.style.setProperty('--ballh',h+'px');
+ }catch(e){}
+}
+function initTabs(){
+ $$('#tabs button').forEach(function(b){b.onclick=function(){
+  $$('#tabs button').forEach(function(x){x.classList.remove('on');});b.classList.add('on');
+  $$('.tab').forEach(function(t){t.classList.remove('on');});$('#t-'+b.dataset.t).classList.add('on');
+  window.scrollTo({top:0,behavior:'smooth'});};});
+}
+function initTa(){
+ ['r_daily','r_week','r_month','r_log'].forEach(function(id){const el=$('#'+id);if(!el)return;
+  const v=load(id);if(v)el.value=v;el.addEventListener('input',function(){save(id,el.value);});});
+}
+function setP(x){const e=$('#hl_upd');if(e){e.textContent='更新于 '+x;e.className='badge b-nt';}}
+function initPxBadges(){
+ $('#px_now').innerHTML='<span class="'+cls(D.px.sz159338.chg)+'">'+f3(D.px.sz159338.px)+' '+(D.px.sz159338.chg>0?'+':'')+D.px.sz159338.chg+'%</span>';
+ $('#px2_now').innerHTML='<span class="'+cls(D.px.sh513050.chg)+'">'+f3(D.px.sh513050.px)+' '+(D.px.sh513050.chg>0?'+':'')+D.px.sh513050.chg+'%</span>';
+}
+var HIST=[];try{HIST=JSON.parse(load('hist')||'[]');}catch(e){HIST=[];}
+function refresh(btn){
+ btn=btn||{textContent:''};
+ btn.textContent='⟳ 拉取中…';
+ const codes=Object.keys(D.px);
+ const s=document.createElement('script');
+ s.src='https://qt.gtimg.cn/q='+codes.join(',')+'&_='+Date.now();
+ s.onload=function(){
+  try{
+   codes.forEach(function(code){
+    const raw=window['v_'+code];if(!raw)return;
+    const f=raw.split('~');if(f.length<40)return;
+    const px=parseFloat(f[3]),hi=parseFloat(f[33]),lo=parseFloat(f[34]);
+    D.px[code]={px,chg:parseFloat(f[32]),hi,lo,pos:(hi>lo)?Math.round((px-lo)/(hi-lo)*100):50,
+      amt:parseFloat(f[37])/1e4,turn:parseFloat(f[38])};
+   });
+   const q0=parseInt($('#q0').value)||0,q1=parseInt($('#q1').value)||0;
+   if(q0>0)D.pos[0].px=D.px.sz159338.px;
+   if(q1>0)D.pos[1].px=D.px.sh513050.px;
+   initPxBadges();renderPos();renderHeader();renderOvernight();calcOut();renderHero();renderWatch();
+   var t=new Date().toLocaleTimeString('zh-CN',{hour:'2-digit',minute:'2-digit'});
+   window.lastUpd=t;setP(t);btn.textContent='✓ '+t;
+   var hp=D.px.sz159338;
+   HIST.push({t:t,px:hp.px,chg:hp.chg,pos:hp.pos,turn:hp.turn,amt:hp.amt,hi:hp.hi,lo:hp.lo});
+   if(HIST.length>600)HIST=HIST.slice(-600);
+   save('hist',JSON.stringify(HIST));
+   setTimeout(function(){btn.textContent='⟳ 刷新';},2500);
+  }catch(e){btn.textContent='⚠ 解析失败';}
+  if(s.parentNode)document.head.removeChild(s);
+ };
+ s.onerror=function(){btn.textContent='⚠ 网络受限';if(s.parentNode)document.head.removeChild(s);};
+ document.head.appendChild(s);
+}
+applyFolds();
+renderHeader();renderHero();renderHeadline();initPxBadges();renderPos();renderTodos();renderLayers();renderLevels();renderOrders();renderOvernight();renderGloss();renderWatch();initTabs();initTa();calcOut();window.lastUpd='15:00';setP('11/16 15:00 收盘');
+setTimeout(fixBall,1200);setTimeout(fixBall,3500);setTimeout(fixBall,6000);window.addEventListener('resize',fixBall);
+if(location.hash==='#watch'){setTimeout(function(){try{openWatch();}catch(e){}},400);}
+if(location.protocol==='https:'&&'serviceWorker' in navigator){try{navigator.serviceWorker.register('sw.js').catch(function(){});}catch(e){}}
+</script>
+<div class="watch" id="watchmode">
+ <div class="w-top"><button class="btn" onclick="closeWatch()">✕ 退出盯盘</button><span class="mu mono" id="w_upd">—</span></div>
+ <div class="w-px"><div class="w-big" id="w_price">—</div><div class="w-chg" id="w_chg">—</div></div>
+ <div class="w-pos" id="w_pos">—</div>
+ <div class="w-dist" id="w_dist"></div>
+ <div class="w-reads" id="w_reads"></div>
+ <div class="w-act"><div class="t">👉 今天该做（照做就行，别临场加戏）</div><ol id="w_act"></ol></div>
+ <div class="w-btns">
+  <button class="btn pri" onclick="copyOrders(this)">📋 复制条件单</button>
+  <button class="btn" onclick="watchRefresh(this)">⟳ 刷新</button>
+ </div>
+ <div class="note" style="margin-top:12px;text-align:center">价格每 30 秒自动刷新。<b>盯盘只看这一页</b>，不要在盘中去翻别的页签。</div>
+</div>
+</body>
+</html>
